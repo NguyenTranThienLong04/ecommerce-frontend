@@ -101,7 +101,7 @@ cursor:pointer;
 
 /* INPUT */
 
-input{
+.account-content input{
 display:block;
 width:300px;
 padding:10px;
@@ -280,4 +280,39 @@ border-radius:4px;
 
 .btn-cancel:hover{
 background:var(--color-danger-hover);
+}
+
+@media (max-width: 768px) {
+  .account-page {
+    flex-direction: column;
+    margin: 24px auto;
+    padding: 0 16px;
+    gap: 24px;
+  }
+
+  .account-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-light);
+    padding-bottom: 16px;
+  }
+
+  .account-content {
+    min-width: 0;
+  }
+
+  .account-page input {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modal-content {
+    width: min(420px, calc(100vw - 32px));
+    margin: 0 16px;
+  }
+
+  .account-content .tab {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

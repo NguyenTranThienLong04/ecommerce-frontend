@@ -115,3 +115,27 @@ table td:nth-child(3) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+@media (max-width: 768px) {
+  .login-box {
+    width: auto;
+    max-width: 420px;
+    margin: 48px 16px;
+    box-sizing: border-box;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding-top: 16px;
+    padding-bottom: 24px;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 16px;
+    overflow-x: auto;
+  }
+}

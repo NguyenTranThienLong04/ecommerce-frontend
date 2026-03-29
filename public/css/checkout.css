@@ -322,3 +322,24 @@ text-decoration:underline;
   margin-bottom: 10px;
   cursor: pointer;
 }
+
+@media (max-width: 768px) {
+  .checkout-wrapper {
+    flex-direction: column;
+  }
+
+  .checkout-left,
+  .checkout-right {
+    width: 100%;
+    padding: 24px 16px;
+  }
+
+  .checkout-right {
+    border-left: none;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .checkout-right > * {
+    max-width: none;
+  }
+}

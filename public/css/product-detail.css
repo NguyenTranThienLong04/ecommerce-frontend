@@ -231,5 +231,30 @@
 @media (max-width: 992px) {
   .product-container {
     flex-direction: column;
+    gap: 40px;
+    margin: 24px auto;
+  }
+
+  #productName {
+    font-size: 22px;
+  }
+
+  #productPrice {
+    font-size: 20px;
+  }
+
+  .cart-popup-content {
+    width: min(420px, calc(100vw - 32px));
+    margin: 0 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .thumbnails {
+    flex-wrap: wrap;
+  }
+
+  .thumbnails img {
+    width: 64px;
   }
 }

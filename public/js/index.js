@@ -152,10 +152,63 @@ function renderPagination(totalPages) {
   }
 }
 
-function initSwiper(){
+/** Swiper instance trang chủ — cần sync khi resize mobile ↔ desktop */
+let homeSwiper = null;
 
-  new Swiper(".mySwiper", {
+function debounce(fn, ms) {
+  let t;
+  return function debounced() {
+    const ctx = this;
+    const args = arguments;
+    clearTimeout(t);
+    t = setTimeout(function () {
+      fn.apply(ctx, args);
+    }, ms);
+  };
+}
+
+/**
+ * Khi bật autoHeight (mobile), Swiper gán height inline cho wrapper.
+ * Khi kéo lại desktop mà không gọi đủ bước cập nhật → banner cắt ngang / trắng phía dưới.
+ */
+function syncHomeSwiperLayout() {
+  const swiper = homeSwiper;
+  if (!swiper || !swiper.el) return;
+
+  const mobile =
+    typeof window.matchMedia === "function"
+      ? window.matchMedia("(max-width: 992px)").matches
+      : window.innerWidth <= 992;
+
+  swiper.params.autoHeight = mobile;
+
+  if (swiper.wrapperEl && !mobile) {
+    swiper.wrapperEl.style.height = "";
+  }
+
+  swiper.updateSize();
+  swiper.updateSlides();
+  swiper.update();
+
+  if (swiper.params.loop && typeof swiper.loopFix === "function") {
+    try {
+      swiper.loopFix();
+    } catch (e) {
+      /* ignore */
+    }
+  }
+}
+
+function initSwiper() {
+
+  const mobile =
+    typeof window.matchMedia === "function"
+      ? window.matchMedia("(max-width: 992px)").matches
+      : window.innerWidth <= 992;
+
+  const swiper = new Swiper(".mySwiper", {
     loop: true,
+    autoHeight: mobile,
     autoplay: {
       delay: 3000,
     },
@@ -167,8 +220,28 @@ function initSwiper(){
       el: ".swiper-pagination",
       clickable: true,
     },
+    observer: true,
+    observeParents: true,
   });
 
+  homeSwiper = swiper;
+
+  if (typeof window.matchMedia === "function") {
+    const mq = window.matchMedia("(max-width: 992px)");
+    const onMq = function () {
+      syncHomeSwiperLayout();
+    };
+    if (mq.addEventListener) mq.addEventListener("change", onMq);
+    else if (mq.addListener) mq.addListener(onMq);
+  }
+
+  const onResize = debounce(syncHomeSwiperLayout, 120);
+  window.addEventListener("resize", onResize);
+  window.addEventListener("orientationchange", syncHomeSwiperLayout);
+
+  requestAnimationFrame(function () {
+    syncHomeSwiperLayout();
+  });
 }
 
 async function loadBanners(){

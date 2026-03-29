@@ -1,36 +1,34 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
-const API_URL = `${BASE}/chat`;
 (function () {
+  const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+  const API_URL = `${BASE}/chat`;
 
-const socket = io("https://ecommerce-backend-w960.onrender.com");
+  let socket = null;
+  let conversationId = null;
 
-let conversationId = null;
+  const token = localStorage.getItem("token");
 
-const token = localStorage.getItem("token");
+  let userId = null;
+  const userData = localStorage.getItem("user");
 
-// lấy user từ localStorage
-let userId = null;
-const userData = localStorage.getItem("user");
-
-if (userData) {
+  if (userData) {
     try {
-        const user = JSON.parse(userData);
-        userId = user.id || user._id;
+      const user = JSON.parse(userData);
+      userId = user.id || user._id;
     } catch (e) {
-        console.log("Parse user error");
+      console.log("Parse user error");
     }
-}
+  }
 
-if (!userId) {
+  if (!userId) {
     console.log("Không có userId trong localStorage");
-}
+  }
 
-// ================= UI =================
+  // ================= UI (chèn trước — không phụ thuộc socket) =================
 
-const chatHTML = `
+  const chatHTML = `
 <div id="chat-widget">
 
-<div id="chat-button">💬</div>
+<div id="chat-button" type="button" aria-label="Mở chat">💬</div>
 
 <div id="chat-box">
 
@@ -43,7 +41,7 @@ Chat với shop
 
 <div id="chat-input-area">
 <input id="chat-input" placeholder="Nhập tin nhắn..."/>
-<button id="chat-send">Gửi</button>
+<button id="chat-send" type="button">Gửi</button>
 </div>
 
 </div>
@@ -51,23 +49,19 @@ Chat với shop
 </div>
 `;
 
-document.body.insertAdjacentHTML("beforeend", chatHTML);
+  document.body.insertAdjacentHTML("beforeend", chatHTML);
 
-// ================= CSS =================
-
-const style = document.createElement("style");
-
-style.innerHTML = `
+  const style = document.createElement("style");
+  style.innerHTML = `
 
 #chat-widget{
 position:fixed;
-bottom:20px;
-right:20px;
-font-family:Arial;
-z-index:9999;
+bottom:max(20px, env(safe-area-inset-bottom, 0px));
+right:max(20px, env(safe-area-inset-right, 0px));
+font-family:Arial, sans-serif;
+z-index:100050;
+pointer-events:auto;
 }
-
-/* BUTTON */
 
 #chat-button{
 width:60px;
@@ -81,13 +75,14 @@ justify-content:center;
 font-size:28px;
 cursor:pointer;
 box-shadow:0 4px 10px rgba(0,0,0,0.2);
+border:none;
+padding:0;
 }
 
-/* BOX */
-
 #chat-box{
-width:320px;
+width:min(320px, calc(100vw - 32px));
 height:420px;
+max-height:min(420px, 70vh);
 background:white;
 border-radius:12px;
 box-shadow:0 0 15px rgba(0,0,0,0.25);
@@ -95,8 +90,6 @@ display:none;
 flex-direction:column;
 overflow:hidden;
 }
-
-/* HEADER */
 
 #chat-header{
 background:#ff4d4f;
@@ -108,8 +101,6 @@ align-items:center;
 font-weight:bold;
 }
 
-/* MESSAGES */
-
 #chat-messages{
 flex:1;
 padding:12px;
@@ -120,36 +111,26 @@ gap:8px;
 background:#f5f5f5;
 }
 
-/* MESSAGE ROW */
-
 .message-row{
 display:flex;
 flex-direction:column;
 max-width:75%;
 }
 
-/* USER MESSAGE */
-
 .message-me{
 align-self:flex-end;
 text-align:right;
 }
 
-/* ADMIN MESSAGE */
-
 .message-other{
 align-self:flex-start;
 }
-
-/* NAME */
 
 .message-name{
 font-size:11px;
 margin-bottom:2px;
 color:#666;
 }
-
-/* BUBBLE */
 
 .message-bubble{
 padding:8px 12px;
@@ -159,23 +140,17 @@ line-height:1.4;
 word-break:break-word;
 }
 
-/* USER BUBBLE */
-
 .message-me .message-bubble{
 background:#ff4d4f;
 color:white;
 border-bottom-right-radius:4px;
 }
 
-/* ADMIN BUBBLE */
-
 .message-other .message-bubble{
 background:white;
 border:1px solid #e5e5e5;
 border-bottom-left-radius:4px;
 }
-
-/* INPUT */
 
 #chat-input-area{
 display:flex;
@@ -199,166 +174,154 @@ cursor:pointer;
 
 `;
 
-document.head.appendChild(style);
+  document.head.appendChild(style);
 
-// ================= DOM =================
+  const chatButton = document.getElementById("chat-button");
+  const chatBox = document.getElementById("chat-box");
+  const chatClose = document.getElementById("chat-close");
+  const chatMessages = document.getElementById("chat-messages");
+  const chatInput = document.getElementById("chat-input");
+  const chatSend = document.getElementById("chat-send");
 
-const chatButton = document.getElementById("chat-button");
-const chatBox = document.getElementById("chat-box");
-const chatClose = document.getElementById("chat-close");
-const chatMessages = document.getElementById("chat-messages");
-const chatInput = document.getElementById("chat-input");
-const chatSend = document.getElementById("chat-send");
+  chatButton.onclick = () => {
+    chatBox.style.display = "flex";
+  };
 
-// open
-chatButton.onclick = () => {
-chatBox.style.display = "flex";
-};
+  chatClose.onclick = () => {
+    chatBox.style.display = "none";
+  };
 
-// close
-chatClose.onclick = () => {
-chatBox.style.display = "none";
-};
+  // ================= Socket (sau UI — không chặn hiển thị nút) =================
 
-// ================= INIT CHAT =================
+  function connectSocket() {
+    if (typeof io === "undefined") {
+      console.warn("chat-widget: Socket.io client chưa load (kiểm tra script socket.io trước chat-widget.js).");
+      return;
+    }
+    try {
+      socket = io("https://ecommerce-backend-w960.onrender.com");
+      socket.on("newMessage", function (msg) {
+        renderMessage(msg);
+      });
+    } catch (err) {
+      console.warn("chat-widget: không khởi tạo socket:", err);
+    }
+  }
 
-async function initChat() {
+  connectSocket();
 
-if (!token) return;
+  async function initChat() {
+    if (!token) return;
 
-try {
-`${API_URL}/conversation`
-const res = await fetch(`${API_URL}/conversation`, {
-method: "POST",
-headers: {
-Authorization: "Bearer " + token
-}
-});
+    try {
+      const res = await fetch(`${API_URL}/conversation`, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
 
-const data = await res.json();
+      const data = await res.json();
 
-if (!data || !data._id) {
-console.log("Conversation không tạo được");
-return;
-}
+      if (!data || !data._id) {
+        console.log("Conversation không tạo được");
+        return;
+      }
 
-conversationId = data._id;
+      conversationId = data._id;
 
-socket.emit("joinConversation", conversationId);
+      if (socket) {
+        socket.emit("joinConversation", conversationId);
+      }
 
-loadMessages();
+      loadMessages();
+    } catch (err) {
+      console.log("Init chat error:", err);
+    }
+  }
 
-} catch (err) {
-console.log("Init chat error:", err);
-}
+  async function loadMessages() {
+    if (!conversationId) return;
 
-}
+    try {
+      const res = await fetch(`${API_URL}/messages/${conversationId}`, {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
 
-// ================= LOAD MESSAGES =================
+      const messages = await res.json();
 
-async function loadMessages() {
+      if (!Array.isArray(messages)) return;
 
-if (!conversationId) return;
+      chatMessages.innerHTML = "";
 
-try {
-const res = await fetch(`${API_URL}/messages/${conversationId}`, {
-headers:{
-Authorization:"Bearer "+token
-}
-});
+      messages.forEach(renderMessage);
+    } catch (err) {
+      console.log("Load messages error:", err);
+    }
+  }
 
-const messages = await res.json();
+  chatSend.onclick = sendMessage;
 
-if (!Array.isArray(messages)) return;
+  chatInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") sendMessage();
+  });
 
-chatMessages.innerHTML="";
+  function sendMessage() {
+    const content = chatInput.value.trim();
 
-messages.forEach(renderMessage);
+    if (!content) return;
 
-} catch (err) {
-console.log("Load messages error:", err);
-}
+    if (!conversationId) {
+      console.log("conversation chưa tạo");
+      return;
+    }
 
-}
+    if (!socket) {
+      console.log("Socket chưa kết nối");
+      return;
+    }
 
-// ================= SEND MESSAGE =================
+    socket.emit("sendMessage", {
+      conversationId: conversationId,
+      userId: userId,
+      content: content,
+      type: "TEXT",
+    });
 
-chatSend.onclick = sendMessage;
+    chatInput.value = "";
+  }
 
-chatInput.addEventListener("keypress",(e)=>{
-if(e.key==="Enter") sendMessage();
-});
+  function renderMessage(msg) {
+    if (!msg) return;
 
-function sendMessage(){
+    const senderId = msg?.idUser?._id || msg?.idUser;
 
-const content = chatInput.value.trim();
+    const row = document.createElement("div");
 
-if(!content) return;
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.innerText = msg.content;
 
-if(!conversationId){
-console.log("conversation chưa tạo");
-return;
-}
+    const name = document.createElement("div");
+    name.className = "message-name";
 
-socket.emit("sendMessage",{
-conversationId:conversationId,
-userId:userId,
-content:content,
-type:"TEXT"
-});
+    if (senderId == userId) {
+      row.className = "message-row message-me";
+      name.innerText = "Bạn";
+    } else {
+      row.className = "message-row message-other";
+      name.innerText = "ADMIN";
+    }
 
-chatInput.value="";
+    row.appendChild(name);
+    row.appendChild(bubble);
 
-}
+    chatMessages.appendChild(row);
 
-// ================= SOCKET RECEIVE =================
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
 
-socket.on("newMessage",(msg)=>{
-renderMessage(msg);
-});
-
-// ================= RENDER MESSAGE =================
-
-function renderMessage(msg){
-
-if(!msg) return;
-
-const senderId = msg?.idUser?._id || msg?.idUser;
-
-const row = document.createElement("div");
-
-const bubble = document.createElement("div");
-bubble.className = "message-bubble";
-bubble.innerText = msg.content;
-
-const name = document.createElement("div");
-name.className = "message-name";
-
-if(senderId == userId){
-
-    // tin nhắn của user
-    row.className = "message-row message-me";
-    name.innerText = "Bạn";
-
-}else{
-
-    // tin nhắn từ admin
-    row.className = "message-row message-other";
-    name.innerText = "ADMIN";
-
-}
-
-row.appendChild(name);
-row.appendChild(bubble);
-
-chatMessages.appendChild(row);
-
-chatMessages.scrollTop = chatMessages.scrollHeight;
-
-}
-
-// ================= START =================
-
-initChat();
-
+  initChat();
 })();
