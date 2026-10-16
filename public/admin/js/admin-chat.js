@@ -29,12 +29,21 @@ async function loadUsers() {
     for (const item of users) {
       if (!item.idUser?._id || !item.idConversation?._id) continue;
       const li = document.createElement("li");
+      li.dataset.conversationId = item.idConversation._id;
+      li.classList.toggle("active", item.idConversation._id === currentUser?.conversationId);
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = item.idUser.name || "Unknown";
+      button.setAttribute("aria-pressed", String(item.idConversation._id === currentUser?.conversationId));
       li.appendChild(button);
       li.onclick = () => selectUser({ userId: item.idUser._id, name: button.textContent, conversationId: item.idConversation._id });
       userList.appendChild(li);
+    }
+    if (!userList.children.length) {
+      const empty = document.createElement("li");
+      empty.className = "empty-state";
+      empty.textContent = "Chưa có hội thoại.";
+      userList.appendChild(empty);
     }
   } catch (error) {
     if (request !== usersVersion) return;
@@ -75,6 +84,11 @@ async function selectUser(user) {
   ++selection;
   ++historyVersion;
   currentUser = user;
+  userList.querySelectorAll("li").forEach(li => {
+    const selected = li.dataset.conversationId === user.conversationId;
+    li.classList.toggle("active", selected);
+    li.querySelector("button")?.setAttribute("aria-pressed", String(selected));
+  });
   messages.clear();
   chatMessages.replaceChildren();
   messageInput.value = drafts.get(user.conversationId) || "";
@@ -93,6 +107,15 @@ function addMessage(msg) {
   bubble.className = "message-bubble";
   bubble.textContent = msg.content;
   row.append(name, bubble);
+  const date = new Date(msg.createdAt);
+  if (!Number.isNaN(date.getTime())) {
+    const time = document.createElement("time");
+    time.className = "message-time";
+    time.dateTime = date.toISOString();
+    time.textContent = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+    time.title = date.toLocaleString("vi-VN");
+    row.appendChild(time);
+  }
   chatMessages.appendChild(row);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }

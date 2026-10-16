@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -9,37 +9,38 @@
 <script src="/js/safe-html.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop</title>
+<title>Cửa hàng · Karma Club</title>
 
 <link rel="stylesheet" href="../css/reset.css">
 <link rel="stylesheet" href="../css/base.css">
 <link rel="stylesheet" href="../css/layout.css">
 <link rel="stylesheet" href="../css/index.css">
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
 </head>
 
 <body>
+<a class="skip-link" href="#content">Đến nội dung chính</a>
 
 <div id="main">
 
 <div id="header-container"></div>
 
-<main id="content">
+<main id="content" tabindex="-1">
 
 <section class="products">
 
 <div class="products__header">
 
-<h2 class="products__title">SHOP</h2>
+<span class="eyebrow">The everyday collection</span><h1 class="products__title">Cửa hàng</h1><p class="section-description">Chọn phong cách. Tìm đúng kích thước.</p>
 
 <div class="shop-filter">
 
 <div class="filter-left">
 
 <div class="filter-item">
+<label for="filter-price">Khoảng giá</label>
 <select id="filter-price">
 <option value="">Lọc giá</option>
 <option value="0-200">0 - 200k</option>
@@ -50,18 +51,21 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 </div>
 
 <div class="filter-item">
+<label for="filter-category">Danh mục</label>
 <select id="filter-category">
 <option value="">Loại</option>
 </select>
 </div>
 
 <div class="filter-item">
+<label for="filter-size">Kích thước</label>
 <select id="filter-size">
 <option value="">Kích thước</option>
 </select>
 </div>
 
 <div class="filter-item">
+<label for="filter-color">Màu sắc</label>
 <select id="filter-color">
 <option value="">Màu sắc</option>
 </select>
@@ -71,11 +75,12 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 
 <div class="filter-right">
 
-<select id="filter-sort">
+<div><label class="filter-sort-label" for="filter-sort">Sắp xếp</label><select id="filter-sort">
 <option value="">Thứ tự</option>
 <option value="price_asc">Giá tăng</option>
 <option value="price_desc">Giá giảm</option>
 </select>
+</div>
 <button id="reset-filters" class="reset-filter-btn">
 Xóa lọc
 </button>
@@ -85,7 +90,7 @@ Xóa lọc
 
 </div>
 
-<div class="products__list" id="products-list"></div>
+<div class="products__list" id="products-list" aria-live="polite"></div>
 
 <div class="pagination" id="pagination"></div>
 

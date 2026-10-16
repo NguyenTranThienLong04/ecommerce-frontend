@@ -68,7 +68,12 @@ function validateLogin(data) {
 // ===============================
 
 function showErrors(errors, formClass) {
-  document.querySelectorAll(`.${formClass} .error-text`).forEach(e => e.remove());
+  document.querySelectorAll(`.${formClass} .error-text`).forEach(e => {
+    const input = e.parentElement.querySelector("input");
+    input?.removeAttribute("aria-invalid");
+    input?.removeAttribute("aria-describedby");
+    e.remove();
+  });
 
   for (let key in errors) {
     const input = document.getElementById(`${formClass}-${key}`);
@@ -76,12 +81,15 @@ function showErrors(errors, formClass) {
 
     const error = document.createElement("p");
     error.className = "error-text";
-    error.style.color = "red";
-    error.style.fontSize = "12px";
+    error.id = input.id + "-error";
+    error.setAttribute("role", "alert");
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-describedby", error.id);
     error.innerText = errors[key];
 
     input.parentNode.appendChild(error);
   }
+  document.querySelector(`.${formClass} [aria-invalid="true"]`)?.focus();
 }
 
 // clear lỗi realtime
@@ -89,6 +97,8 @@ document.querySelectorAll("input").forEach(input => {
   input.addEventListener("input", () => {
     const err = input.parentNode.querySelector(".error-text");
     if (err) err.remove();
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
   });
 });
 

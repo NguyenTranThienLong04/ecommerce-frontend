@@ -84,8 +84,8 @@ async function renderCart(items, request = cartRequest) {
         <div class="cart-product">
         <a href="${SafeHTML.productPath(product.slug)}">
           <img 
-            src="${SafeHTML.url(product.images?.[0])}"
-            width="80"
+            src="${SafeHTML.url(product.images?.[0], "/assets/images/product-placeholder.svg")}"
+            width="80" alt=""
             class="cart-product-image"
           >
           <div>
@@ -98,9 +98,9 @@ async function renderCart(items, request = cartRequest) {
         </div>
 
         <div class="cart-quantity">
-          <button data-action="quantity" data-id="${item._id}" data-quantity="${quantity - 1}" ${!available ? SafeHTML.html`disabled` : ""}>-</button>
+          <button data-action="quantity" data-id="${item._id}" aria-label="Giảm số lượng" data-quantity="${quantity - 1}" ${!available ? SafeHTML.html`disabled` : ""}>-</button>
           <span>${quantity}</span>
-          <button data-action="quantity" data-id="${item._id}" data-quantity="${quantity + 1}" ${!available ? SafeHTML.html`disabled` : ""}>+</button>
+          <button data-action="quantity" data-id="${item._id}" aria-label="Tăng số lượng" data-quantity="${quantity + 1}" ${!available ? SafeHTML.html`disabled` : ""}>+</button>
         </div>
 
         <div class="cart-total">
@@ -108,7 +108,7 @@ async function renderCart(items, request = cartRequest) {
         </div>
 
         <div class="cart-remove">
-          <button data-action="remove" data-id="${item._id}">X</button>
+          <button aria-label="Xóa sản phẩm khỏi giỏ" data-action="remove" data-id="${item._id}">X</button>
         </div>
 
       </div>
@@ -180,7 +180,7 @@ document.querySelector(".cart-items")?.addEventListener("click", event => {
   if (button.dataset.action === "remove") removeItem(button.dataset.id, button);
 });
 document.querySelector(".cart-items")?.addEventListener("error", event => {
-  if (event.target.matches("img.cart-product-image") && !event.target.src.endsWith("/default.png")) event.target.src = "/default.png";
+  if (event.target.matches("img.cart-product-image") && !event.target.src.endsWith("/assets/images/product-placeholder.svg")) event.target.src = "/assets/images/product-placeholder.svg";
 }, true);
 
 /* LOAD CART */

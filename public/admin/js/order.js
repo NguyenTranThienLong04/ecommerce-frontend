@@ -69,13 +69,13 @@ const product=item.idProductVariant?.idProduct || {};
 const variant=item.idProductVariant || {};
 const snapshot=item.productSnapshot;
 
-const img=(snapshot ? snapshot.image : product.images?.[0]) || "/default.png";
+const img=(snapshot ? snapshot.image : product.images?.[0]) || "/assets/images/product-placeholder.svg";
 
 return SafeHTML.html`
 
 <div class="order-item">
 
-<img src="${SafeHTML.url(img)}">
+<img src="${SafeHTML.url(img)}" alt="" loading="lazy">
 
 <div class="order-item-info">
 <div><b>${(snapshot ? snapshot.nameProduct : product.nameProduct) || "Sản phẩm không còn thông tin"}</b></div>
@@ -112,7 +112,7 @@ ${order.idUser?.email}
 ${order.status}
 </span>
  <br>
-  <span class="payment-status" style="color:${order.paymentStatus==='PAID'?'green':'red'}">
+  <span class="payment-status" data-paid="${order.paymentStatus === 'PAID'}">
     ${order.paymentStatus === 'PAID' ? 'Đã thanh toán' : 'Chưa thanh toán'}
   </span>
 </td>
@@ -161,6 +161,7 @@ ${itemsHtml}
 });
 
 renderPagination(orders.length);
+if (!paginated.length) list.innerHTML = '<tr><td colspan="7" class="empty-state">Không có đơn hàng phù hợp.</td></tr>';
 
 bindEvents();
 

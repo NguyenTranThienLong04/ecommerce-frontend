@@ -1,160 +1,200 @@
-.chat-container{
-    display:flex;
-    height:600px;
-    border:1px solid #ddd;
-    background:white;
-    border-radius:10px;
-    overflow:hidden;
+.chat-container  {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  height: min(680px, 75dvh);
+  min-height: 460px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface);
 }
 
-/* ================= USER LIST ================= */
-
-.chat-users{
-    width:260px;
-    border-right:1px solid #eee;
-    background:#fafafa;
-    display:flex;
-    flex-direction:column;
+.chat-users  {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--color-border);
 }
 
-.chat-users h3{
-    padding:12px;
-    margin:0;
-    border-bottom:1px solid #eee;
+.chat-users h3  {
+  margin: 0;
+  padding: 20px;
+  font-size: 15px;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.chat-users ul{
-    list-style:none;
-    padding:0;
-    margin:0;
-    overflow-y:auto;
+.chat-users ul  {
+  list-style: none;
+  padding: 8px;
+  margin: 0;
+  overflow-y: auto;
 }
 
-.chat-users li{
-    padding:12px;
-    cursor:pointer;
-    border-bottom:1px solid #eee;
-    transition:0.2s;
+.chat-users li  {
+  padding: 0;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
 }
 
-.chat-users li:hover{
-    background:#f2f2f2;
+.chat-users button  {
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  background: transparent;
+  overflow-wrap: anywhere;
 }
 
-.chat-users li.active{
-    background:#e6f0ff;
-    font-weight:bold;
+.chat-users li.active  {
+  background: var(--color-bg-light);
+  box-shadow: inset 3px 0 var(--color-accent);
 }
 
-/* ================= CHAT BOX ================= */
-
-.chat-box{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    background:#f5f5f5;
+.chat-users li.active button  {
+  font-weight: 700;
 }
 
-/* HEADER */
-
-#chatHeader{
-    padding:12px;
-    border-bottom:1px solid #eee;
-    font-weight:bold;
-    background:white;
+.chat-box  {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
 }
 
-/* ================= MESSAGES ================= */
-
-#chatMessages{
-    flex:1;
-    overflow-y:auto;
-    padding:15px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
+#chatHeader  {
+  padding: 20px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: 15px;
+  font-weight: 650;
 }
 
-/* MESSAGE ROW */
-
-.message{
-    max-width:65%;
-    display:flex;
-    flex-direction:column;
+#chatMessages  {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-/* USER MESSAGE */
-
-.message.user{
-    align-self:flex-start;
+.message  {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ADMIN MESSAGE */
-
-.message.admin{
-    align-self:flex-end;
-    text-align:right;
+.message.user  {
+  align-self: flex-start;
 }
 
-/* NAME */
-
-.message-name{
-    font-size:11px;
-    margin-bottom:3px;
-    color:#666;
+.message.admin  {
+  align-self: flex-end;
+  text-align: right;
 }
 
-/* BUBBLE */
-
-.message-bubble{
-    padding:8px 12px;
-    border-radius:16px;
-    font-size:14px;
-    line-height:1.4;
-    word-break:break-word;
+.message-name, .message-time  {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
 }
 
-/* USER BUBBLE */
-
-.message.user .message-bubble{
-    background:white;
-    border:1px solid #e5e5e5;
-    border-bottom-left-radius:4px;
+.message-time  {
+  margin-top: 4px;
 }
 
-/* ADMIN BUBBLE */
-
-.message.admin .message-bubble{
-    background:#ff4d4f;
-    color:white;
-    border-bottom-right-radius:4px;
+.message-bubble  {
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  text-align: left;
 }
 
-/* ================= INPUT ================= */
-
-.chat-input{
-    display:flex;
-    border-top:1px solid #eee;
-    background:white;
+.message.user .message-bubble  {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 4px;
 }
 
-.chat-input input{
-    flex:1;
-    padding:12px;
-    border:none;
-    outline:none;
-    font-size:14px;
+.message.admin .message-bubble  {
+  background: var(--color-primary);
+  color: white;
+  border-bottom-right-radius: 4px;
 }
 
-.chat-input button{
-    width:100px;
-    border:none;
-    background:#ff4d4f;
-    color:white;
-    cursor:pointer;
-    font-weight:bold;
+.chat-input  {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
 }
 
-.chat-input button:hover{
-    background:#ff4d4f;
+.chat-input input  {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.chat-input button  {
+  background: var(--color-primary);
+  color: white;
+  min-width: 72px;
+}
+
+.chat-box > button  {
+  margin: 8px 16px;
+  align-self: flex-start;
+}
+
+.chat-box:has(#sendBtn[aria-busy="true"]) .chat-status:empty  {
+  display: block;
+}
+
+.chat-box:has(#sendBtn[aria-busy="true"]) .chat-status:empty::before  {
+  content: 'Đang gửi tin nhắn…';
+}
+
+@media (max-width: 1024px)  {
+  .chat-container  {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 768px)  {
+  .chat-container  {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 680px;
+    max-height: 90dvh;
+  }
+  .chat-users  {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .chat-users h3  {
+    padding: 12px 16px;
+  }
+  .chat-users ul  {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 140px;
+  }
+  .chat-users li  {
+    max-width: 100%;
+  }
+  .chat-users button  {
+    padding: 10px 14px;
+  }
+  #chatMessages  {
+    padding: 16px;
+  }
 }

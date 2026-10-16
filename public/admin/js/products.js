@@ -75,7 +75,7 @@ async function loadProducts(navigate = true) {
     const row = document.createElement("tr");
     row.innerHTML = SafeHTML.html`
 <td>
-          <img src="${SafeHTML.url(image)}" width="60">
+          <img src="${SafeHTML.url(image)}" width="60" alt="" loading="lazy">
         </td>
 
         <td>${product.nameProduct}${product.archivedAt ? " (Ngừng bán)" : ""}</td>
@@ -112,6 +112,7 @@ async function loadProducts(navigate = true) {
     table.appendChild(row);
 
   });
+  if (!data.products.length) table.innerHTML = '<tr><td colspan="7" class="empty-state">Không có sản phẩm phù hợp.</td></tr>';
 
   } catch (error) {
     if (request === productsRequest) {

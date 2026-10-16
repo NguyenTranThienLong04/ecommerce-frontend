@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -10,19 +10,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Tìm kiếm</title>
+<title>Tìm kiếm · Karma Club</title>
 
 <link rel="stylesheet" href="../css/reset.css">
 <link rel="stylesheet" href="../css/base.css">
 <link rel="stylesheet" href="../css/layout.css">
 <link rel="stylesheet" href="../css/index.css">
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
 </head>
 
 <body>
+<a class="skip-link" href="#content">Đến nội dung chính</a>
 
 <div id="main">
 
@@ -30,7 +30,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 <div id="header-container"></div>
 
 
-<main id="content" style="min-height: calc(100vh - 112px - 300px);">
+<main id="content" tabindex="-1">
 
 <section class="products">
 
@@ -38,11 +38,11 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
 
 
 
-<p id="search-count"></p>
+<span class="eyebrow">Tìm điều bạn thích</span><h1 class="products__title">Kết quả tìm kiếm</h1><p id="search-count" role="status"></p>
 
 </div>
 
-<div class="products__list" id="products-list"></div>
+<div class="products__list" id="products-list" aria-live="polite"></div>
 
 <div class="pagination" id="pagination"></div>
 

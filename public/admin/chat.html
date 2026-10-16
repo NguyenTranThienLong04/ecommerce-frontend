@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -7,17 +7,21 @@
 <link rel="stylesheet" href="/css/reliability.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Chat</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <title>Tin nhắn · Karma Club Admin</title>
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
   <link rel="stylesheet" href="/admin/css/chat.css">
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="slidebar-container"></div>
 
-<div class="content">
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
 
-  <h1>Chat với khách hàng</h1>
+  <div class="page-intro"><h1>Tin nhắn</h1><p>Kết nối và hỗ trợ khách hàng.</p></div>
 
   <div class="chat-container">
 
@@ -34,10 +38,10 @@
         Chọn khách hàng để chat
       </div>
 
-      <div id="chatMessages"></div>
+      <div id="chatMessages" role="log" aria-label="Tin nhắn hội thoại"></div>
 
       <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="Nhập tin nhắn...">
+        <input type="text" aria-label="Tin nhắn" id="messageInput" placeholder="Nhập tin nhắn...">
         <button id="sendBtn">Gửi</button>
       </div>
 
@@ -61,7 +65,7 @@ fetch('/admin/slidebar.html')
 
     const adminUser = Api.stored("adminUser");
     const adminInfoElem = document.getElementById("adminInfo");
-    
+
     if (adminUser && adminInfoElem) {
       adminInfoElem.textContent = "Xin chào: ";
       const email = document.createElement("b");

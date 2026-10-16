@@ -3,6 +3,31 @@ const dashboardCharts = {};
 let revenueRequest = 0;
 function dashboardChart(id, options) {
   dashboardCharts[id]?.destroy?.();
+  const colors = ["#526246", "#345a78", "#805714", "#ad3434", "#646b61"];
+  options.data.datasets.forEach(dataset => {
+    dataset.backgroundColor = options.type === "line" ? "#eaf3ed" : colors;
+    dataset.borderColor = "#526246";
+    dataset.borderWidth = 2;
+    dataset.borderRadius = 4;
+  });
+  options.options = {
+    responsive: true,
+    animation: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? false : { duration: 200 },
+    plugins: { legend: { labels: { color: "#646b61", font: { family: "Segoe UI, sans-serif", size: 12 } } } },
+    scales: { x: { grid: { display: false }, ticks: { color: "#646b61" } }, y: { grid: { color: "#e7eae3" }, ticks: { color: "#646b61" } } }
+  };
+  const canvas = document.getElementById(id);
+  const hasData = options.data.datasets.some(dataset => dataset.data.length > 0);
+  canvas.hidden = !hasData;
+  canvas.parentElement.querySelector(".chart-empty")?.remove();
+  if (!hasData) {
+    const empty = document.createElement("p");
+    empty.className = "chart-empty empty-state";
+    empty.textContent = "Chưa có số liệu cho lựa chọn này.";
+    canvas.after(empty);
+  }
+  canvas.setAttribute("aria-label", options.data.datasets.map(dataset => dataset.label + ": " +
+    options.data.labels.map((label, index) => label + " " + dataset.data[index]).join(", ")).join(". "));
   dashboardCharts[id] = new Chart(document.getElementById(id), options);
 }
 async function loadDashboard() {

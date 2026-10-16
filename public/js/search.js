@@ -23,7 +23,7 @@ if (navigate) {
   const next = "/search?" + params.toString();
   if (location.pathname + location.search !== next) history.pushState({}, "", next);
 }
-document.getElementById("products-list").textContent = "Đang tải...";
+document.getElementById("products-list").innerHTML = '<div class="ui-loading" role="status">Đang tải sản phẩm…<div class="ui-skeleton" aria-hidden="true"></div></div>';
 document.getElementById("pagination").replaceChildren();
 document.getElementById("search-count").textContent = "";
 
@@ -141,10 +141,10 @@ return;
 
 products.forEach(product=>{
 
-const img = product.images?.[0] || "no-image.png";
+const img = product.images?.[0] || "/assets/images/product-placeholder.svg";
 
 const price = product.minPrice
-? product.minPrice.toLocaleString()
+? product.minPrice.toLocaleString("vi-VN")
 : "Liên hệ";
 
 // 🔥 build tag
@@ -160,7 +160,7 @@ data-slug="${product.slug}">
 
 <div class="product__image">
 
-<img src="${SafeHTML.url(img)}">
+<img src="${SafeHTML.url(img)}" alt="${product.nameProduct}" loading="lazy">
 
 <div class="product__badges">
 ${badgeHTML}
@@ -173,7 +173,7 @@ ${product.nameProduct}
 </h3>
 
 <div class="product__price">
-${price} VND
+${price} đ
 </div>
 
 </div>

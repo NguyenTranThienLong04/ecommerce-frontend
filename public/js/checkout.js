@@ -61,7 +61,12 @@ function validateCheckout(data) {
 }
 
 function showErrors(errors) {
-  document.querySelectorAll(".error-text").forEach(e => e.remove());
+  document.querySelectorAll(".error-text").forEach(e => {
+    const input = e.parentElement.querySelector("input");
+    input?.removeAttribute("aria-invalid");
+    input?.removeAttribute("aria-describedby");
+    e.remove();
+  });
 
   for (let key in errors) {
     const input = document.getElementById(key);
@@ -69,12 +74,15 @@ function showErrors(errors) {
 
     const error = document.createElement("p");
     error.className = "error-text";
-    error.style.color = "red";
-    error.style.fontSize = "12px";
+    error.id = input.id + "-error";
+    error.setAttribute("role", "alert");
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-describedby", error.id);
     error.innerText = errors[key];
 
     input.parentNode.appendChild(error);
   }
+  document.querySelector('[aria-invalid="true"]')?.focus();
 }
 
 // clear lỗi realtime
@@ -82,6 +90,8 @@ document.querySelectorAll("input").forEach(input => {
   input.addEventListener("input", () => {
     const err = input.parentNode.querySelector(".error-text");
     if (err) err.remove();
+    input.removeAttribute("aria-invalid");
+    input.removeAttribute("aria-describedby");
   });
 });
 
@@ -155,8 +165,8 @@ container.innerHTML += SafeHTML.html`
 <div class="order-product">
 
 <img
-src="${SafeHTML.url(product.images?.[0])}"
-class="checkout-product-image"
+src="${SafeHTML.url(product.images?.[0], "/assets/images/product-placeholder.svg")}"
+class="checkout-product-image" alt=""
 >
 
 <div class="order-info">
@@ -389,7 +399,7 @@ async function handleCheckout() {
 }
 
 document.getElementById("orderItems").addEventListener("error", event => {
-  if (event.target.matches("img.checkout-product-image") && !event.target.src.endsWith("/default.png")) event.target.src = "/default.png";
+  if (event.target.matches("img.checkout-product-image") && !event.target.src.endsWith("/assets/images/product-placeholder.svg")) event.target.src = "/assets/images/product-placeholder.svg";
 }, true);
 const checkoutReady = Promise.all([loadCheckoutCart(), loadUserInfo(), loadAddressBook()])
   .then(restoreAttempt)

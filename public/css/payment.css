@@ -1,0 +1,84 @@
+body  {
+  min-height: 100dvh;
+  padding: 32px 16px;
+  display: grid;
+  place-items: center;
+}
+
+.payment-card  {
+  width: min(100%, 600px);
+  padding: clamp(24px, 5vw, 48px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.payment-brand  {
+  display: inline-flex;
+  min-height: 44px;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -.04em;
+  margin-bottom: 40px;
+}
+
+.payment-symbol  {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.payment-card[data-state="PAID"] .payment-symbol  {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.payment-card[data-state="FAILED"] .payment-symbol, .payment-card[data-state="CANCELLED"] .payment-symbol  {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+.payment-card[data-state="EXPIRED"] .payment-symbol, .payment-card[data-state="REQUIRES_REVIEW"] .payment-symbol  {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+#payment-title  {
+  font-size: clamp(26px, 4vw, 36px);
+}
+
+#payment-message  {
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+#payment-order  {
+  overflow-wrap: anywhere;
+  padding: 16px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+#payment-order:empty  {
+  display: none;
+}
+
+.payment-actions  {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.payment-actions > *  {
+  flex: 1 1 auto;
+}

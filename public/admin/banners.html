@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -8,57 +8,50 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Banners</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <title>Banner · Karma Club Admin</title>
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
+<script src="/js/ui.js" defer></script>
 </head>
 
 <body>
-<style>
-    .banner-form{
-margin-bottom:20px;
-display:flex;
-gap:10px;
-align-items:center;
-}
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
-.banner-form input{
-padding:6px;
-}
-</style>
 <div id="slidebar-container"></div>
 
-<div class="content">
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
 
-<h1>Banner Management</h1>
+<div class="page-intro"><h1>Banner</h1><p>Quản lý hình ảnh nổi bật trên cửa hàng.</p></div>
 
 <!-- ADD FORM -->
-<div class="banner-form">
+<div class="banner-form form-grid"><h3>Thêm banner</h3>
 
-<input type="file" id="image">
-<input type="text" id="title" placeholder="Title">
-<input type="text" id="link" placeholder="Link">
-<input type="number" id="order" placeholder="Order">
+<div class="form-field"><label for="image">Ảnh banner</label><input type="file" id="image"></div>
+<div class="form-field"><label for="title">Tiêu đề</label><input type="text" id="title" placeholder="Title"></div>
+<div class="form-field"><label for="link">Liên kết</label><input type="text" id="link" placeholder="Link"></div>
+<div class="form-field"><label for="order">Thứ tự hiển thị</label><input type="number" id="order" placeholder="Order"></div>
 
-<button onclick="addBanner()">Add Banner</button>
+<div class="form-actions full-width"><button class="button-primary" onclick="addBanner()">Thêm banner</button></div>
 
 </div>
 
 
-<table border="1" width="100%" id="banner-table">
+<div class="table-scroll" role="region" aria-label="Bảng banner" tabindex="0"><table id="banner-table">
 
 <thead>
 <tr>
-<th>Image</th>
-<th>Title</th>
-<th>Order</th>
-<th>Status</th>
-<th>Action</th>
+<th scope="col">Image</th>
+<th scope="col">Title</th>
+<th scope="col">Order</th>
+<th scope="col">Status</th>
+<th scope="col">Action</th>
 </tr>
 </thead>
 
 <tbody></tbody>
 
-</table>
+</table></div>
 
 </div>
 

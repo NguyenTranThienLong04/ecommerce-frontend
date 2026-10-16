@@ -9,64 +9,67 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Detail</title>
-  
+  <title>Chi tiết sản phẩm · Karma Club</title>
+
   <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 <link rel="stylesheet" href="/css/product-detail.css">
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="main">
 
   <div id="header-container"></div>
 
-  <div class="product-container">
-    
+  <main class="product-container" id="main-content" tabindex="-1">
+
     <!-- LEFT -->
     <div class="gallery">
-      <img id="mainImage" class="main-image" />
+      <img alt="Ảnh sản phẩm" id="mainImage" class="main-image" />
       <div id="thumbnails" class="thumbnails"></div>
     </div>
 
     <!-- RIGHT -->
     <div class="info">
-      <h1 id="productName"></h1>
+      <span class="eyebrow">Karma Club / Collection</span><h1 id="productName"></h1>
       <h2 id="productPrice"></h2>
 
       <div class="section">
-        <p class="label">SIZE</p>
+        <p class="label">KÍCH THƯỚC</p>
         <div id="sizes" class="size-list"></div>
       </div>
-      
+
       <div class="section">
-  <p class="label">COLOR</p>
+  <p class="label">MÀU SẮC</p>
   <div id="colors" class="size-list"></div>
 </div>
 
+      <p id="variant-availability" role="status">Chọn kích thước và màu sắc để xem tình trạng sản phẩm.</p>
       <button id="addToCartBtn" class="add-cart">
-        ADD TO CART
+        THÊM VÀO GIỎ
       </button>
 
       <div id="productDescription" class="product-description"></div>
     </div>
 
-  </div>
+  </main>
 <!-- ADD TO CART POPUP -->
-<div id="cartPopup" class="cart-popup hidden">
+<div id="cartPopup" class="cart-popup hidden" role="dialog" aria-modal="true" aria-label="Đã thêm vào giỏ hàng">
   <div class="cart-popup-content">
-    
+
     <div class="popup-header">
       <span>✔ THÊM VÀO GIỎ THÀNH CÔNG</span>
-      <button onclick="closePopup()">✕</button>
+      <button type="button" aria-label="Đóng thông báo" onclick="closePopup()">✕</button>
     </div>
 
     <div class="popup-body">
-      <img id="popupImage" />
+      <img alt="Sản phẩm vừa thêm vào giỏ" id="popupImage" />
       <div>
         <h3 id="popupName"></h3>
         <p id="popupVariant"></p>

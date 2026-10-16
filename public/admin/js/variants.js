@@ -39,6 +39,7 @@ async function loadVariants() {
     table.appendChild(row);
 
   });
+  if (!product.variants.length) table.innerHTML = '<tr><td colspan="5" class="empty-state">Chưa có biến thể.</td></tr>';
   } catch (error) { Api.report(error, loadVariants); }
 }
 

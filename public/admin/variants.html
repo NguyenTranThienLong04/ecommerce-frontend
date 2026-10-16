@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -8,23 +8,27 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Variants</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <title>Biến thể sản phẩm · Karma Club Admin</title>
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="slidebar-container"></div>
 
-<div class="content">
-  <h1>Variants</h1>
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
+  <div class="page-intro"><h1>Biến thể sản phẩm</h1><p>Quản lý kích thước, màu sắc, giá và tồn kho.</p></div>
 
-  <h3>Thêm Variant</h3>
-  <input type="text" id="size" placeholder="Size">
-  <input type="text" id="color" placeholder="Color">
-  <input type="number" id="price" placeholder="Price">
-  <input type="number" id="stock" placeholder="Stock">
-  <button onclick="addVariant()">Thêm</button>
-  <button type="button" onclick="clearForm()">Hủy chỉnh sửa</button>
+  <section class="admin-form form-grid"><h3>Thông tin biến thể</h3>
+  <div class="form-field"><label for="size">Kích thước</label><input type="text" id="size" placeholder="Size"></div>
+  <div class="form-field"><label for="color">Màu sắc</label><input type="text" id="color" placeholder="Color"></div>
+  <div class="form-field"><label for="price">Giá bán</label><input type="number" id="price" placeholder="Price"></div>
+  <div class="form-field"><label for="stock">Tồn kho ban đầu</label><input type="number" id="stock" placeholder="Stock"></div>
+  <div class="form-actions full-width"><button class="button-primary" onclick="addVariant()">Thêm</button>
+  <button type="button" onclick="clearForm()">Hủy chỉnh sửa</button></div></section>
 
   <section id="inventoryForm" hidden>
     <h3>Điều chỉnh tồn kho</h3>
@@ -36,23 +40,23 @@
     <p id="inventoryMessage" role="status"></p>
   </section>
 
-  <hr>
 
-  <table>
+
+  <div class="table-scroll" role="region" aria-label="Bảng biến thể sản phẩm" tabindex="0"><table>
     <thead>
       <tr>
-        <th>Size</th>
-        <th>Color</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Action</th>
+        <th scope="col">Size</th>
+        <th scope="col">Color</th>
+        <th scope="col">Price</th>
+        <th scope="col">Stock</th>
+        <th scope="col">Action</th>
       </tr>
     </thead>
     <tbody id="variantTable"></tbody>
-  </table>
+  </table></div>
 </div>
  <script>
-   
+
  fetch('/admin/slidebar.html')
   .then(res => res.text())
   .then(html => {
@@ -62,7 +66,7 @@
     // 2. Sau đó mới chạy code hiển thị email
     const adminUser = Api.stored("adminUser");
     const adminInfoElem = document.getElementById("adminInfo");
-    
+
     if (adminUser && adminInfoElem) {
       adminInfoElem.textContent = "Xin chào: ";
       const email = document.createElement("b");

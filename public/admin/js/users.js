@@ -49,6 +49,7 @@ async function loadUsers() {
     table.appendChild(row);
 
   });
+  if (!users.length) table.innerHTML = '<tr><td colspan="5" class="empty-state">Chưa có người dùng.</td></tr>';
 
   } catch (error) { if (request === usersRequest) Api.report(error, loadUsers); }
 }

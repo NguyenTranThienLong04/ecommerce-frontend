@@ -1,0 +1,178 @@
+#chat-widget  {
+  position: fixed;
+  bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px));
+  z-index: 100050;
+  font-family: var(--font-body);
+}
+
+#chat-button  {
+  display: flex;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  padding: 16px;
+  background: var(--color-primary);
+  color: white;
+  border: 1px solid var(--color-primary);
+  box-shadow: var(--shadow-overlay);
+}
+
+#chat-box  {
+  display: none;
+  width: min(380px, calc(100vw - 32px));
+  height: 500px;
+  max-height: calc(100dvh - 104px);
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-overlay);
+}
+
+#chat-widget:has(#chat-box[style*="flex"]) #chat-button  {
+  margin: 0 0 12px auto;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+}
+
+#chat-header  {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+#chat-header small  {
+  display: block;
+  color: #d8ddd3;
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+#chat-close  {
+  min-width: 44px;
+  padding: 10px;
+  background: transparent;
+  border-color: #646b61;
+  color: white;
+}
+
+#chat-messages  {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--color-bg);
+}
+
+#chat-messages:empty::before  {
+  content: 'Karma Club luôn sẵn sàng lắng nghe bạn.';
+  display: block;
+  margin: auto 8px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.message-row  {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.message-me  {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.message-other  {
+  align-self: flex-start;
+}
+
+.message-name, .message-time  {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0 0 4px;
+}
+
+.message-time  {
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.message-bubble  {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.message-me .message-bubble  {
+  background: var(--color-primary);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message-other .message-bubble  {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: 4px;
+}
+
+#chat-input-area  {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+#chat-input  {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+}
+
+#chat-send  {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+#chat-retry  {
+  margin: 8px 12px;
+}
+
+#chat-box:has(#chat-send[aria-busy="true"]) #chat-status:empty  {
+  display: block;
+}
+
+#chat-box:has(#chat-send[aria-busy="true"]) #chat-status:empty::before  {
+  content: 'Đang gửi tin nhắn…';
+}
+
+@media (max-width: 480px)  {
+  #chat-widget  {
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    right: 16px;
+  }
+  #chat-box  {
+    max-height: calc(100dvh - 96px);
+  }
+}

@@ -42,6 +42,7 @@ function renderProduct(data) {
   const thumbnails = document.getElementById("thumbnails");
 
   mainImage.src = SafeHTML.url(product.images[0]);
+  mainImage.alt = product.nameProduct;
 
   thumbnails.innerHTML = "";
   product.images.forEach(img => {
@@ -182,6 +183,11 @@ function updateOptions() {
 
 function updateVariant() {
   const addBtn = document.getElementById("addToCartBtn");
+  const availability = document.getElementById("variant-availability");
+  if (availability) {
+    availability.textContent = "Chọn kích thước và màu sắc để xem tình trạng sản phẩm.";
+    delete availability.dataset.available;
+  }
 
   // Nếu chưa chọn đủ
   if (!selectedSize || !selectedColor) {
@@ -208,6 +214,10 @@ function updateVariant() {
     formatPrice(found.price);
 
   addBtn.disabled = found.stock === 0;
+  if (availability) {
+    availability.textContent = found.stock === 0 ? "Hết hàng với lựa chọn này." : "Còn " + found.stock + " sản phẩm.";
+    availability.dataset.available = String(found.stock > 0);
+  }
 }
 
 /* =========================

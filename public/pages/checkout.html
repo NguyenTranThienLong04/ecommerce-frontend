@@ -1,138 +1,65 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<script src="/runtime-config.js"></script>
-<script src="/js/api.js"></script>
-<script src="/js/payment-create.js"></script>
-<script src="/js/chat-sync.js"></script>
-<link rel="stylesheet" href="/css/reliability.css">
-<script src="/vendor/dompurify.js"></script>
-<script src="/js/safe-html.js"></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Thanh toán</title>
-<link rel="stylesheet" href="/css/checkout.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán · Karma Club</title>
+  <script src="/runtime-config.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/payment-create.js"></script>
+  <script src="/js/chat-sync.js"></script>
+  <script src="/vendor/dompurify.js"></script>
+  <script src="/js/safe-html.js"></script>
+  <link rel="stylesheet" href="/css/reset.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/reliability.css">
+  <link rel="stylesheet" href="/css/checkout.css">
+  <link rel="stylesheet" href="/css/chat.css">
+  <script src="/js/ui.js" defer></script>
 </head>
-
 <body>
-
-<div class="checkout-wrapper">
-
-<div class="checkout-left">
-
-<a href="/" class="logo-link">
-<div class="logo">
-<h1>KARMA CLUB®</h1>
-<span>madeinvietnam</span>
-</div>
-</a>
-
-<h2>Thông tin nhận hàng</h2>
-
-<div class="form-group">
-
-<div class="field">
-<select id="addressBook">
-<option value="">Địa chỉ khác...</option>
-</select>
-<label>Sổ địa chỉ</label>
-</div>
-
-<div class="field">
-<input id="email" type="email" placeholder=" " readonly>
-<label>Email</label>
-</div>
-
-<div class="field">
-<input id="receiverName" type="text" placeholder=" ">
-<label>Họ và tên</label>
-</div>
-
-<div class="field">
-<input id="phone" type="text" placeholder=" ">
-<label>Số điện thoại</label>
-</div>
-
-<div class="field">
-<input id="addressLine" type="text" placeholder=" ">
-<label>Địa chỉ</label>
-</div>
-
-<div class="field">
-<input id="city" type="text" placeholder=" ">
-<label>Tỉnh thành</label>
-</div>
-
-<div class="field">
-<input id="district" type="text" placeholder=" ">
-<label>Quận huyện</label>
-</div>
-
-<div class="field">
-<input id="ward" type="text" placeholder=" ">
-<label>Phường xã</label>
-</div>
-
-<div class="field">
-<textarea id="note" placeholder=" "></textarea>
-<label>Ghi chú (tùy chọn)</label>
-</div>
-
-</div>
-
-<h3>Thanh toán</h3>
-
-<div class="payment-box">
-<label>
-<input type="radio" name="payment" value="COD" checked>
-Thanh toán khi giao hàng (COD)
-</label>
-<label>
-  <input type="radio" name="payment" value="VNPAY">
-  Thanh toán VNPay
-</label>
-</div>
-
-</div>
-
-
-<div class="checkout-right">
-
-<h3>Đơn hàng</h3>
-
-<div id="orderItems"></div>
-
-<div class="summary-row">
-<span>Tạm tính</span>
-<span id="subTotal">0 đ</span>
-</div>
-
-<div class="summary-row">
-<span>Phí vận chuyển</span>
-<span id="shippingFee">—</span>
-</div>
-
-<div class="summary-total">
-<span>Tổng cộng</span>
-<span id="orderTotal">0 đ</span>
-</div>
-
-<a href="/cart" class="back-cart">
-← Quay về giỏ hàng
-</a>
-
-<p id="checkoutMessage" role="status"></p>
-<button id="checkoutBtn" onclick="handleCheckout()" class="checkout-btn" disabled>
-  Đặt hàng
-</button>
-
-</div>
-
-</div>
-
-<script src="/js/checkout.js"></script>
-<script src="/vendor/socket.io.min.js"></script>
-<script src="/js/chat-widget.js"></script>
-
+  <a class="skip-link" href="#main-content">Đến nội dung chính</a>
+  <header class="checkout-brand"><a href="/" class="logo-link"><div class="logo"><h1>KARMA CLUB®</h1><span>made in vietnam</span></div></a></header>
+  <main class="checkout-wrapper" id="main-content" tabindex="-1">
+    <section class="checkout-left" aria-labelledby="shipping-title">
+      <h2 id="shipping-title"><span class="step-number">1</span>Thông tin nhận hàng</h2>
+      <div class="form-group">
+        <div class="field field-wide"><select id="addressBook"><option value="">Địa chỉ khác...</option></select><label for="addressBook">Sổ địa chỉ</label></div>
+        <div class="field field-wide"><input id="email" type="email" placeholder=" " readonly autocomplete="email"><label for="email">Email</label></div>
+        <div class="field"><input id="receiverName" type="text" placeholder=" " autocomplete="name"><label for="receiverName">Họ và tên</label></div>
+        <div class="field"><input id="phone" type="tel" placeholder=" " autocomplete="tel"><label for="phone">Số điện thoại</label></div>
+        <div class="field field-wide"><input id="addressLine" type="text" placeholder=" " autocomplete="street-address"><label for="addressLine">Địa chỉ</label></div>
+        <div class="field"><input id="city" type="text" placeholder=" " autocomplete="address-level1"><label for="city">Tỉnh / Thành phố</label></div>
+        <div class="field"><input id="district" type="text" placeholder=" " autocomplete="address-level2"><label for="district">Quận / Huyện</label></div>
+        <div class="field field-wide"><input id="ward" type="text" placeholder=" " autocomplete="address-level3"><label for="ward">Phường / Xã</label></div>
+        <div class="field field-wide"><textarea id="note" placeholder=" "></textarea><label for="note">Ghi chú (tùy chọn)</label></div>
+      </div>
+    </section>
+    <section class="checkout-right" aria-labelledby="summary-title">
+      <h2 id="summary-title"><span class="step-number">2</span>Đơn hàng của bạn</h2>
+      <div id="orderItems"></div>
+      <div class="summary-row"><span>Tạm tính</span><span id="subTotal">0 đ</span></div>
+      <div class="summary-row"><span>Phí vận chuyển</span><span id="shippingFee">—</span></div>
+      <div class="summary-total"><span>Tổng cộng</span><span id="orderTotal">0 đ</span></div>
+    </section>
+    <section class="checkout-payment" aria-label="Thanh toán và xác nhận">
+      <div>
+        <h2><span class="step-number">3</span>Phương thức thanh toán</h2>
+        <div class="payment-box">
+          <label><input type="radio" name="payment" value="COD" checked>Thanh toán khi giao hàng (COD)</label>
+          <label><input type="radio" name="payment" value="VNPAY">Thanh toán VNPay</label>
+        </div>
+      </div>
+      <div class="checkout-confirm">
+        <h2><span class="step-number">4</span>Xác nhận đơn hàng</h2>
+        <p id="checkoutMessage" role="status" aria-live="polite"></p>
+        <button id="checkoutBtn" onclick="handleCheckout()" class="checkout-btn" disabled>Đặt hàng</button>
+        <a href="/cart" class="back-cart">← Quay về giỏ hàng</a>
+      </div>
+    </section>
+  </main>
+  <script src="/js/checkout.js"></script>
+  <script src="/vendor/socket.io.min.js"></script>
+  <script src="/js/chat-widget.js"></script>
 </body>
 </html>

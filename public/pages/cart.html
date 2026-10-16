@@ -9,20 +9,23 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Giỏ hàng</title>
-  <link rel="stylesheet" href="../css/cart.css">
+  <title>Giỏ hàng · Karma Club</title>
+
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/layout.css">
-    <link rel="stylesheet" href="../css/login.css">
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
+<link rel="stylesheet" href="/css/cart.css">
 </head>
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
   <div id="main">
 <div id="header-container"></div>
-<div class="cart-container">
+<main class="cart-container" id="main-content" tabindex="-1">
 
-  <h2>GIỎ HÀNG</h2>
+  <div class="page-intro"><span class="eyebrow">Your selection</span><h1>Giỏ hàng của bạn</h1><p>Kiểm tra sản phẩm và số lượng trước khi thanh toán.</p></div>
 
   <div class="cart-table">
 
@@ -43,7 +46,7 @@
     <button class="checkout-btn" onclick="goCheckout()">Thanh toán</button>
   </div>
 
-</div>
+</main>
 <div id="footer-container"></div>
 </div>
 

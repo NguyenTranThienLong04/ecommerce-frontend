@@ -43,6 +43,7 @@
       const display = states[data?.state];
       if (!display || typeof data.orderId !== "string" || !data.orderId) throw new Error("Unknown status");
       document.getElementById("payment-login").hidden = true;
+      if (title.closest("main")) title.closest("main").dataset.state = data.state;
       title.textContent = display[0];
       message.textContent = display[1];
       document.getElementById("payment-order").textContent = "Mã đơn hàng: " + data.orderId;
@@ -52,6 +53,7 @@
       }
     } catch (error) {
       if (request !== version || !active) return;
+      if (title.closest("main")) delete title.closest("main").dataset.state;
       if (error.status === 401) {
         title.textContent = "Đăng nhập để kiểm tra";
         message.textContent = error.message;

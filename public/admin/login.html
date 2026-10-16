@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -7,15 +7,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Login</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
 
 <div class="login-box">
-  <h2>Admin Login</h2>
-  <input type="text" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
+  <a class="login-brand" href="/">KARMA CLUB®</a><span class="eyebrow">Store management</span><h1>Đăng nhập quản trị</h1><p class="section-description">Truy cập không gian quản lý cửa hàng.</p>
+  <label for="email">Email</label><input type="text" autocomplete="username" id="email" placeholder="Email">
+  <label for="password">Mật khẩu</label><input type="password" autocomplete="current-password" id="password" placeholder="Password">
+  <button class="button-primary" onclick="login()">Đăng nhập</button>
 </div>
 
 <script src="/admin/js/admin-auth.js"></script>

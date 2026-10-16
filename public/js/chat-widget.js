@@ -28,16 +28,16 @@
   const chatHTML = `
 <div id="chat-widget">
 
-<button id="chat-button" type="button" aria-label="Mở chat">💬</button>
+<button id="chat-button" type="button" aria-label="Mở chat" aria-controls="chat-box" aria-expanded="false"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-2 2V11.5a9.5 9.5 0 0 1 19 0Z"/><path d="M7 9h9M7 13h6"/></svg></button>
 
-<div id="chat-box">
+<div id="chat-box" role="region" aria-label="Hỗ trợ Karma Club">
 
 <div id="chat-header">
-Chat với shop
+<div>Chat với shop<small>Karma Club / Hỗ trợ khách hàng</small></div>
 <button id="chat-close" type="button" aria-label="Đóng chat">✖</button>
 </div>
 
-<div id="chat-messages"></div>
+<div id="chat-messages" role="log" aria-label="Tin nhắn"></div>
 <p id="chat-status" class="chat-status" role="status"></p>
 <button id="chat-retry" type="button" hidden>Kết nối / tải lại</button>
 
@@ -53,130 +53,7 @@ Chat với shop
 
   document.body.insertAdjacentHTML("beforeend", chatHTML);
 
-  const style = document.createElement("style");
-  style.textContent = `
 
-#chat-widget{
-position:fixed;
-bottom:max(20px, env(safe-area-inset-bottom, 0px));
-right:max(20px, env(safe-area-inset-right, 0px));
-font-family:Arial, sans-serif;
-z-index:100050;
-pointer-events:auto;
-}
-
-#chat-button{
-width:60px;
-height:60px;
-background:#ff4d4f;
-color:white;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-cursor:pointer;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-border:none;
-padding:0;
-}
-
-#chat-box{
-width:min(320px, calc(100vw - 32px));
-height:420px;
-max-height:min(420px, 70vh);
-background:white;
-border-radius:12px;
-box-shadow:0 0 15px rgba(0,0,0,0.25);
-display:none;
-flex-direction:column;
-overflow:hidden;
-}
-
-#chat-header{
-background:#ff4d4f;
-color:white;
-padding:12px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-font-weight:bold;
-}
-
-#chat-messages{
-flex:1;
-padding:12px;
-overflow-y:auto;
-display:flex;
-flex-direction:column;
-gap:8px;
-background:#f5f5f5;
-}
-
-.message-row{
-display:flex;
-flex-direction:column;
-max-width:75%;
-}
-
-.message-me{
-align-self:flex-end;
-text-align:right;
-}
-
-.message-other{
-align-self:flex-start;
-}
-
-.message-name{
-font-size:11px;
-margin-bottom:2px;
-color:#666;
-}
-
-.message-bubble{
-padding:8px 12px;
-border-radius:16px;
-font-size:14px;
-line-height:1.4;
-word-break:break-word;
-}
-
-.message-me .message-bubble{
-background:#ff4d4f;
-color:white;
-border-bottom-right-radius:4px;
-}
-
-.message-other .message-bubble{
-background:white;
-border:1px solid #e5e5e5;
-border-bottom-left-radius:4px;
-}
-
-#chat-input-area{
-display:flex;
-border-top:1px solid #eee;
-}
-
-#chat-input{
-flex:1;
-border:none;
-padding:10px;
-outline:none;
-}
-
-#chat-send{
-width:70px;
-border:none;
-background:#ff4d4f;
-color:white;
-cursor:pointer;
-}
-
-`;
-
-  document.head.appendChild(style);
 
   const chatButton = document.getElementById("chat-button");
   const chatBox = document.getElementById("chat-box");
@@ -332,6 +209,15 @@ cursor:pointer;
 
     row.appendChild(name);
     row.appendChild(bubble);
+    const date = new Date(msg.createdAt);
+    if (!Number.isNaN(date.getTime())) {
+      const time = document.createElement("time");
+      time.className = "message-time";
+      time.dateTime = date.toISOString();
+      time.textContent = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+      time.title = date.toLocaleString("vi-VN");
+      row.appendChild(time);
+    }
 
     chatMessages.appendChild(row);
 

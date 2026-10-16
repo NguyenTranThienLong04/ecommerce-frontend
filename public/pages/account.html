@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -11,29 +11,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Account</title>
+<title>Tài khoản · Karma Club</title>
 
 <link rel="stylesheet" href="../css/reset.css">
 <link rel="stylesheet" href="../css/base.css">
 <link rel="stylesheet" href="../css/layout.css">
 <link rel="stylesheet" href="../css/account.css">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
 </head>
 
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="main">
 
 <div id="header-container"></div>
 
-<main class="account-page">
+<main class="account-page" id="main-content" tabindex="-1">
 
 <div class="account-sidebar">
 
 <div class="user-info">
-<img id="user-avatar" src="https://tuanluupiano.com/wp-content/uploads/2026/01/avatar-facebook-mac-dinh-13.jpg">
+<img id="user-avatar" src="/assets/images/avatar.svg" width="64" height="64" alt="">
 <p id="sidebar-name">User</p>
 </div>
 
@@ -53,7 +54,7 @@
 
 <div class="tab active" id="dashboard">
 
-<h2>THÔNG TIN TÀI KHOẢN</h2>
+<h2>Thông tin tài khoản</h2>
 
 <p id="hello-user"></p>
 
@@ -70,23 +71,23 @@
 
 <div class="tab" id="orders">
 
-<h2>LỊCH SỬ ĐƠN HÀNG</h2>
+<h2>Lịch sử đơn hàng</h2>
 
-<table class="order-table">
+<div class="table-scroll" role="region" aria-label="Lịch sử đơn hàng" tabindex="0"><table class="order-table">
 
 <thead>
 <tr>
-<th>Mã đơn</th>
-<th>Ngày</th>
-<th>Tổng tiền</th>
-<th>Trạng thái</th>
-<th></th>
+<th scope="col">Mã đơn</th>
+<th scope="col">Ngày</th>
+<th scope="col">Tổng tiền</th>
+<th scope="col">Trạng thái</th>
+<th scope="col"></th>
 </tr>
 </thead>
 
 <tbody id="order-list"></tbody>
 
-</table>
+</table></div>
 
 </div>
 
@@ -95,12 +96,12 @@
 
 <div class="tab" id="address">
 
-<h2>SỔ ĐỊA CHỈ</h2>
+<h2>Sổ địa chỉ</h2>
 
 <div id="address-list" class="address-list"></div>
 
 <button class="btn" id="add-address-btn">
-<i class="fa fa-plus"></i> Thêm địa chỉ
+<span aria-hidden="true">+</span> Thêm địa chỉ
 </button>
 
 </div>
@@ -135,13 +136,13 @@
 
 <div class="tab" id="password">
 
-<h2>ĐỔI MẬT KHẨU</h2>
+<h2>Đổi mật khẩu</h2>
 
 <form autocomplete="off">
 
-<input type="password" placeholder="Mật khẩu cũ">
-<input type="password" placeholder="Mật khẩu mới">
-<input type="password" placeholder="Xác nhận mật khẩu">
+<label for="account-password-0">Mật khẩu cũ</label><input id="account-password-0" type="password" placeholder="Mật khẩu cũ" autocomplete="current-password">
+<label for="account-password-1">Mật khẩu mới</label><input id="account-password-1" type="password" placeholder="Mật khẩu mới" autocomplete="new-password">
+<label for="account-password-2">Xác nhận mật khẩu</label><input id="account-password-2" type="password" placeholder="Xác nhận mật khẩu" autocomplete="new-password">
 
 <button class="btn">Cập nhật</button>
 

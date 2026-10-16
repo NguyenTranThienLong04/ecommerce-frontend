@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -9,52 +9,54 @@
 <script src="/js/safe-html.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Karma Club · Phong cách mỗi ngày</title>
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 
-    </head>
-</head> 
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
+</head>
 <body>
+<a class="skip-link" href="#content">Đến nội dung chính</a>
     <div id="main">
 
     <!-- Nơi header sẽ được load -->
   <div id="header-container"></div>
 
-  <section id="slider">
+<section class="home-intro" aria-labelledby="home-title"><div><span class="eyebrow">Karma Club / Everyday wear</span><h1 id="home-title">Phong cách riêng.<br>Mỗi ngày của bạn.</h1></div><p>Khám phá những thiết kế phù hợp với cách bạn sống và thể hiện bản thân.</p></section>
+  <section id="slider" aria-label="Bộ sưu tập nổi bật">
    <div class="swiper mySwiper">
   <div class="swiper-wrapper" id="banner-list">
-    
+
   </div>
-  
+
   <!-- Nút -->
-  <div style ="color: #fff;" class="swiper-button-next"></div>
-  <div style ="color: #fff;" class="swiper-button-prev"></div>
-  
+  <div class="swiper-button-next"></div>
+  <div class="swiper-button-prev"></div>
+
   <!-- Dots -->
   <div class="swiper-pagination"></div>
 </div>
 
   </section>
 
-  <main id="content">
-    
+  <main id="content" tabindex="-1">
+
    <section class="products">
     <div class="products__header">
-      <h2 class="products__title">Tất cả sản phẩm</h2>
+      <span class="eyebrow">Khám phá bộ sưu tập</span><h2 class="products__title">Tất cả sản phẩm</h2><p class="section-description">Tìm thiết kế dành cho bạn.</p>
     </div>
-    
-      <div class="products__list" id="products-list">
-         
+
+      <div class="products__list" id="products-list" aria-live="polite">
+
       </div>
 
       <div class="pagination" id="pagination"></div>
-      
-      
+
+
    </section>
 
   </main>

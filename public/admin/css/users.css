@@ -1,25 +1,9 @@
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+/* Table, actions and fields inherit the shared design system. */
+.admin-table .user-role  {
+  min-width: 115px;
+  font-size: 14px;
 }
 
-.admin-table th,
-.admin-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
-}
-
-.admin-table th {
-  background: #f4f4f4;
-}
-
-button {
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-select {
-  padding: 5px;
+.admin-table td:nth-child(3)  {
+  white-space: nowrap;
 }

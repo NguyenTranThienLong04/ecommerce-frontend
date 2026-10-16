@@ -29,7 +29,7 @@ function updateURL(page) {
 // ==============================
 async function fetchProducts() {
   const request = ++productRequest;
-  document.getElementById("products-list").textContent = "Đang tải...";
+  document.getElementById("products-list").innerHTML = '<div class="ui-loading" role="status">Đang tải sản phẩm…<div class="ui-skeleton" aria-hidden="true"></div></div>';
   document.getElementById("pagination").replaceChildren();
   try {
 
@@ -59,10 +59,11 @@ function renderProducts() {
   productList.innerHTML = "";
 
   const productsToShow = allProducts;
+  if (!productsToShow.length) productList.innerHTML = '<p class="empty-state">Chưa có sản phẩm để hiển thị.</p>';
 
   productsToShow.forEach(product => {
 
-    const firstImage = product.images[0] || "default.jpg";
+    const firstImage = product.images[0] || "/assets/images/product-placeholder.svg";
 
     let badges = [];
 
@@ -108,7 +109,7 @@ const html = SafeHTML.html`
 
   <div class="product__image">
 
-    <img src="${SafeHTML.url(firstImage)}" alt="${product.nameProduct}">
+    <img src="${SafeHTML.url(firstImage)}" alt="${product.nameProduct}" loading="lazy">
 
     <div class="product__badges">
       ${badgeHTML}
@@ -119,7 +120,7 @@ const html = SafeHTML.html`
   <h3 class="product__name">${product.nameProduct}</h3>
 
   <div class="product__price">
-    ${product.minPrice || "Liên hệ"} VND
+    ${product.minPrice ? product.minPrice.toLocaleString("vi-VN") + " đ" : "Liên hệ"}
   </div>
 
 </div>
@@ -214,9 +215,11 @@ function initSwiper() {
   const swiper = new Swiper(".mySwiper", {
     loop: true,
     autoHeight: mobile,
-    autoplay: {
+    autoplay: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? false : {
       delay: 3000,
+      pauseOnMouseEnter: true,
     },
+    speed: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 0 : 220,
     navigation: {
       nextEl: ".swiper-button-next",
       prevEl: ".swiper-button-prev",
@@ -230,6 +233,10 @@ function initSwiper() {
   });
 
   homeSwiper = swiper;
+  swiper.el?.addEventListener("focusin", () => swiper.autoplay?.stop());
+  swiper.el?.addEventListener("focusout", event => {
+    if (!swiper.el.contains(event.relatedTarget) && !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) swiper.autoplay?.start();
+  });
 
   if (typeof window.matchMedia === "function") {
     const mq = window.matchMedia("(max-width: 992px)");
@@ -263,7 +270,7 @@ async function loadBanners(){
     bannerList.innerHTML += SafeHTML.html`
       <div class="swiper-slide">
         <a href="${SafeHTML.url(banner.link)}">
-          <img src="${SafeHTML.url(banner.image)}">
+          <img src="${SafeHTML.url(banner.image)}" alt="${banner.title || 'Bộ sưu tập Karma Club'}">
         </a>
       </div>
     `;

@@ -29,6 +29,7 @@ async function loadCategories() {
     row.querySelector('[data-action="deleteCategory"]').addEventListener("click", () => deleteCategory(category._id));
     table.appendChild(row);
     });
+    if (!categories.length) table.innerHTML = '<tr><td colspan="2" class="empty-state">Chưa có danh mục.</td></tr>';
 
   } catch (error) {
     Api.report(error, loadCategories);

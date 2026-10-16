@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -8,91 +8,46 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <title>Tổng quan · Karma Club Admin</title>
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    .card {
-      padding: 20px;
-      margin: 10px;
-      background: #f5f5f5;
-      border-radius: 10px;
-      display: inline-block;
-      min-width: 200px;
-      font-weight: bold;
-    }
 
-    canvas {
-      max-width: 700px;
-      margin-top: 20px;
-    }
-
-    table {
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: center;
-    }
-  </style>
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="slidebar-container"></div>
 
-<div class="content">
-  <h1>Dashboard</h1>
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
+  <div class="page-intro"><h1>Tổng quan</h1><p>Hoạt động cửa hàng trong một góc nhìn.</p></div>
 
-  <!-- STATS -->
-  <div class="card">Products: <span id="totalProducts">0</span></div>
-  <div class="card">Orders: <span id="totalOrders">0</span></div>
-  <div class="card">Users: <span id="totalUsers">0</span></div>
-  <div class="card">Revenue: <span id="revenue">0</span> đ</div>
-
-  <!-- STATUS CHART -->
-  <h2>Order Status</h2>
-  <canvas id="statusChart"></canvas>
-
-  <!-- REVENUE CHART -->
-  <h2>Revenue By Day</h2>
-  <canvas id="revenueChart"></canvas>
-
-  <!-- RECENT ORDERS -->
-  <h2>Recent Orders</h2>
-  <table border="1" width="100%">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Total</th>
-        <th>Status</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody id="recentOrders"></tbody>
-  </table>
-
-  <h2>Filter Revenue</h2>
-<select id="month">
-  <option value="3">March</option>
-  <option value="4">April</option>
-</select>
-
-<select id="year">
-  <option value="2026">2026</option>
-</select>
-
-<button onclick="loadRevenueChart()">Filter</button>
-
-<h2>Top Products</h2>
-<canvas id="topProductsChart"></canvas>
-
-<h2>Top Users</h2>
-<canvas id="topUsersChart"></canvas>
+<div class="kpi-grid">
+  <div class="card">Sản phẩm<span id="totalProducts">0</span></div>
+  <div class="card">Đơn hàng<span id="totalOrders">0</span></div>
+  <div class="card">Khách hàng<span id="totalUsers">0</span></div>
+  <div class="card">Doanh thu<span id="revenue">0</span>đ</div>
+</div>
+<div class="chart-grid">
+  <section class="chart-panel"><h2>Trạng thái đơn hàng</h2><div class="chart-frame"><canvas id="statusChart" role="img" aria-label="Biểu đồ trạng thái đơn hàng"></canvas></div></section>
+  <section class="chart-panel"><h2>Doanh thu theo ngày</h2>
+    <div class="toolbar"><div class="form-field"><label for="month">Tháng</label><select id="month"><option value="3">Tháng 3</option><option value="4">Tháng 4</option></select></div>
+    <div class="form-field"><label for="year">Năm</label><select id="year"><option value="2026">2026</option></select></div><button onclick="loadRevenueChart()">Lọc</button></div>
+    <div class="chart-frame"><canvas id="revenueChart" role="img" aria-label="Biểu đồ doanh thu theo ngày"></canvas></div>
+  </section>
+</div>
+<section class="dashboard-section"><h2>Đơn hàng gần đây</h2>
+  <div class="table-scroll" role="region" aria-label="Đơn hàng gần đây" tabindex="0"><table><thead><tr><th scope="col">Mã đơn</th><th scope="col">Tổng tiền</th><th scope="col">Trạng thái</th><th scope="col">Ngày</th></tr></thead><tbody id="recentOrders"></tbody></table></div>
+</section>
+<div class="chart-grid dashboard-section">
+  <section class="chart-panel"><h2>Sản phẩm bán chạy</h2><div class="chart-frame"><canvas id="topProductsChart" role="img" aria-label="Biểu đồ sản phẩm bán chạy"></canvas></div></section>
+  <section class="chart-panel"><h2>Khách hàng nổi bật</h2><div class="chart-frame"><canvas id="topUsersChart" role="img" aria-label="Biểu đồ khách hàng nổi bật"></canvas></div></section>
+</div>
 </div>
 
 <script src="/admin/js/admin-auth.js"></script>

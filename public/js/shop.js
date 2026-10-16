@@ -165,7 +165,7 @@ function applyURLFilters() {
 async function fetchProducts(page = 1, navigate = true) {
   const request = ++productRequest;
   currentPage = Math.max(1, Number(page) || 1);
-  document.getElementById("products-list").textContent = "Đang tải...";
+  document.getElementById("products-list").innerHTML = '<div class="ui-loading" role="status">Đang tải sản phẩm…<div class="ui-skeleton" aria-hidden="true"></div></div>';
   document.getElementById("pagination").replaceChildren();
 
   try {
@@ -218,10 +218,10 @@ function renderProducts() {
 
   products.forEach(product => {
 
-    const firstImage = product.images?.[0] || "no-image.png";
+    const firstImage = product.images?.[0] || "/assets/images/product-placeholder.svg";
 
     const price = product.minPrice
-      ? product.minPrice.toLocaleString()
+      ? product.minPrice.toLocaleString("vi-VN")
       : "Liên hệ";
 
     // 🔥 BUILD TAG
@@ -237,7 +237,7 @@ function renderProducts() {
 
       <div class="product__image">
 
-        <img src="${SafeHTML.url(firstImage)}" alt="${product.nameProduct}">
+        <img src="${SafeHTML.url(firstImage)}" alt="${product.nameProduct}" loading="lazy">
 
         <div class="product__badges">
           ${badgeHTML}
@@ -250,7 +250,7 @@ function renderProducts() {
       </h3>
 
       <div class="product__price">
-        ${price} VND
+        ${price} đ
       </div>
 
     </div>

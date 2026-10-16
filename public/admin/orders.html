@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -8,33 +8,37 @@
 <script src="/js/safe-html.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Orders</title>
+<title>Đơn hàng · Karma Club Admin</title>
 
+<link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
 <link rel="stylesheet" href="/admin/css/admin.css">
 <link rel="stylesheet" href="/admin/css/order.css">
 
+<script src="/js/ui.js" defer></script>
 </head>
 
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="slidebar-container"></div>
 
-<div class="content">
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
 
-<h1>Quản lý đơn hàng</h1>
+<div class="page-intro"><h1>Đơn hàng</h1><p>Theo dõi đơn hàng và cập nhật trạng thái xử lý.</p></div>
 
 <div class="order-tools">
 
-<input type="text" id="searchOrder" placeholder="Tìm mã đơn hoặc email">
+<div class="form-field"><label for="searchOrder">Tìm mã đơn hoặc email</label><input type="text" id="searchOrder" placeholder="Tìm mã đơn hoặc email"></div>
 
-<select id="statusFilter">
+<div class="form-field"><label for="statusFilter">Trạng thái</label><select id="statusFilter">
 <option value="">Tất cả trạng thái</option>
 <option value="PENDING">PENDING</option>
 <option value="CONFIRMED">CONFIRMED</option>
 <option value="SHIPPING">SHIPPING</option>
 <option value="DONE">DONE</option>
 <option value="CANCEL">CANCEL</option>
-</select>
+</select></div>
 
 </div>
 
@@ -62,23 +66,23 @@
 
 </div>
 
-<table class="order-table">
+<div class="table-scroll" role="region" aria-label="Bảng đơn hàng" tabindex="0"><table class="order-table">
 
 <thead>
 <tr>
-<th>Mã đơn</th>
-<th>Khách hàng</th>
-<th>Ngày</th>
-<th>Tổng tiền</th>
-<th>Trạng thái</th>
-<th>Phương thức</th> 
-<th>Hành động</th>
+<th scope="col">Mã đơn</th>
+<th scope="col">Khách hàng</th>
+<th scope="col">Ngày</th>
+<th scope="col">Tổng tiền</th>
+<th scope="col">Trạng thái</th>
+<th scope="col">Phương thức</th>
+<th scope="col">Hành động</th>
 </tr>
 </thead>
 
 <tbody id="order-list"></tbody>
 
-</table>
+</table></div>
 
 <div id="pagination"></div>
 

@@ -1,6 +1,13 @@
 Current commands are in the [main README](../README.md). Batch sections below are
 historical checkpoints; Batch 7 supersedes the previous browser/chat limitations.
 
+UI refactor checkpoint: **116 frontend regressions and 17 Chromium E2E tests**.
+The seven UI tests in `e2e/ui.spec.js` cover 375/768/1024/1440px, short landscape,
+keyboard focus, form labels, reduced motion, contrast, payment-card states,
+loading/error/empty rendering, and admin writes. Screenshots are generated under
+`.cache/ui-review`. See [UI refactor report](../docs/ui-refactor.md) for library
+cache instructions, preserved logic and coverage limits.
+
 Batch 8 current checkpoint: **116 frontend tests and 10 Chromium E2E tests**.
 New catalog/checkout cases verify separate metadata/inventory forms, 409 refresh
 without silent CAS retry, server payment capability and durable same-tab payment

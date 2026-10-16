@@ -16,7 +16,7 @@ banners.forEach(banner => {
 const row = document.createElement("tr");
     row.innerHTML = SafeHTML.html`
 <td>
-<img src="${SafeHTML.url(banner.image)}" width="120">
+<img src="${SafeHTML.url(banner.image)}" width="120" alt="${banner.title || 'Banner cửa hàng'}" loading="lazy">
 </td>
 
 <td>${banner.title || ""}</td>
@@ -36,6 +36,7 @@ const row = document.createElement("tr");
 
 });
 
+if (!banners.length) tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Chưa có banner.</td></tr>';
 } catch (error) { Api.report(error, loadBanners); }
 }
 

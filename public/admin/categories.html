@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -8,34 +8,38 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Categories</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <title>Danh mục · Karma Club Admin</title>
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="slidebar-container"></div>
-<div class="content">
-  <h1>Categories</h1>
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
+  <div class="page-intro"><h1>Danh mục</h1><p>Sắp xếp sản phẩm theo từng nhóm.</p></div>
 
-  <h3>Thêm danh mục</h3>
-  <input type="text" id="categoryName" placeholder="Tên danh mục">
-  <button onclick="addCategory()">Thêm</button>
+  <section class="admin-form"><h3>Thông tin danh mục</h3><div class="toolbar">
+  <div class="form-field"><label for="categoryName">Tên danh mục</label><input type="text" id="categoryName" placeholder="Tên danh mục"></div>
+  <button class="button-primary" onclick="addCategory()">Thêm</button></div></section>
 
-  <hr>
 
-  <table>
+
+  <div class="table-scroll" role="region" aria-label="Bảng danh mục" tabindex="0"><table>
     <thead>
       <tr>
-        <th>Tên danh mục</th>
-        <th>Action</th>
+        <th scope="col">Tên danh mục</th>
+        <th scope="col">Action</th>
       </tr>
     </thead>
     <tbody id="categoryTable"></tbody>
-  </table>
+  </table></div>
 </div>
 
  <script>
-   
+
  fetch('/admin/slidebar.html')
   .then(res => res.text())
   .then(html => {
@@ -45,7 +49,7 @@
     // 2. Sau đó mới chạy code hiển thị email
     const adminUser = Api.stored("adminUser");
     const adminInfoElem = document.getElementById("adminInfo");
-    
+
     if (adminUser && adminInfoElem) {
       adminInfoElem.textContent = "Xin chào: ";
       const email = document.createElement("b");

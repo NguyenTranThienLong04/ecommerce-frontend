@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -8,35 +8,39 @@
 <script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manage Users</title>
-  <link rel="stylesheet" href="/admin/css/admin.css">
+  <title>Khách hàng · Karma Club Admin</title>
+  <link rel="stylesheet" href="/css/reset.css">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/admin/css/admin.css">
   <link rel="stylesheet" href="/admin/css/users.css">
+<script src="/js/ui.js" defer></script>
 </head>
 
 <body>
+<a class="skip-link" href="#main-content">Đến nội dung chính</a>
 
 <div id="slidebar-container"></div>
 
-<div class="content">
+<div class="content" id="main-content" role="main" tabindex="-1"><header class="admin-topbar"><span>WORKSPACE / KARMA CLUB</span><a href="/">Xem cửa hàng ↗</a></header>
 
-  <h1>Users</h1>
+  <div class="page-intro"><h1>Khách hàng</h1><p>Thông tin tài khoản và phân quyền người dùng.</p></div>
 
-  <table class="admin-table">
+  <div class="table-scroll" role="region" aria-label="Bảng khách hàng" tabindex="0"><table class="admin-table">
 
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Role</th>
-        <th>Action</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Phone</th>
+        <th scope="col">Role</th>
+        <th scope="col">Action</th>
       </tr>
     </thead>
 
     <tbody id="userTable">
     </tbody>
 
-  </table>
+  </table></div>
 
 </div>
 

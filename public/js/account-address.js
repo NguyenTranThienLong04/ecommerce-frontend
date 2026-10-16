@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
       addresses = data;
       list.innerHTML = addresses.length ? addresses.map(addr => SafeHTML.html`
         <div class="address-item">
-          <p><b>${addr.receiverName}</b>${addr.isDefault ? SafeHTML.html`<span style="color:green">(Mặc định)</span>` : ""}</p>
+          <p><b>${addr.receiverName}</b>${addr.isDefault ? SafeHTML.html`<span class="status-chip status-success">(Mặc định)</span>` : ""}</p>
           <p>${addr.phone}</p><p>${addr.addressLine}, ${addr.ward}, ${addr.district}, ${addr.city}</p>
           <div class="address-actions">
             <button data-action="editAddress" data-id="${addr._id}">Sửa</button>

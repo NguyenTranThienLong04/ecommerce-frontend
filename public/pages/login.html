@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
@@ -7,28 +7,30 @@
 <link rel="stylesheet" href="/css/reliability.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Tài khoản · Karma Club</title>
      <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/layout.css">
     <link rel="stylesheet" href="../css/login.css">
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/ui.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#content">Đến nội dung chính</a>
     <div id="main">
         <div id="header-container"></div>
-    <main id="content">
+    <main id="content" tabindex="-1" class="auth-layout"><div class="page-intro"><span class="eyebrow">Your Karma Club</span><h1>Chào mừng bạn.</h1><p>Đăng nhập hoặc tạo tài khoản để tiếp tục mua sắm.</p></div>
        <section class="login">
            <h2 class="login__title">Đăng nhập</h2>
            <form action="" class="login__form" >
             <div class="login__field">
                 <i class="login__icon fas fa-envelope"></i>
-                <input class="login__input" type="email" id="login-email" placeholder="Email của bạn" name="login_email"  readonly
+                <label for="login-email">Email</label><input class="login__input" type="email" id="login-email" placeholder="Email của bạn" name="login_email"  readonly
       onfocus="this.removeAttribute('readonly')"required>
             </div>
             <div class="login__field">
                 <i class="login__icon fas fa-lock"></i>
-                 <input class="login__input" type="password" id="login-password" placeholder="Nhập mật khẩu" name="login_password" readonly
+                 <label for="login-password">Mật khẩu</label><input class="login__input" type="password" id="login-password" placeholder="Nhập mật khẩu" name="login_password" readonly
       onfocus="this.removeAttribute('readonly')" required>
             </div>
             <button type="submit" class="login__btn">Đăng nhập</button>
@@ -43,22 +45,22 @@
            <form action="" class="register__form" >
             <div class="register__field">
                 <i class="register__icon fas fa-user"></i>
-            <input class="register__input" type="text" id="register-name" name="register_name" placeholder="Họ và Tên"  readonly
+            <label for="register-name">Họ và tên</label><input class="register__input" type="text" id="register-name" name="register_name" placeholder="Họ và Tên"  readonly
       onfocus="this.removeAttribute('readonly')" required>
            </div>
            <div class="register__field">
             <i class="register__icon fas fa-envelope"></i>
-             <input class="register__input" type="email" id="register-email" name="register_email" placeholder="Email"  readonly
+             <label for="register-email">Email</label><input class="register__input" type="email" id="register-email" name="register_email" placeholder="Email"  readonly
       onfocus="this.removeAttribute('readonly')" required>
            </div>
             <div class="register__field">
             <i class="register__icon fas fa-phone"></i>
-             <input class="register__input" type="phone" id="register-phone" name="register_phone" placeholder="Số điện thoại"  readonly
+             <label for="register-phone">Số điện thoại</label><input class="register__input" type="tel" id="register-phone" name="register_phone" placeholder="Số điện thoại"  readonly
       onfocus="this.removeAttribute('readonly')" required>
            </div>
            <div class="register__field">
             <i class="register__icon fas fa-lock"></i>
-             <input class="register__input" type="password" id="register-password" name="register_password" placeholder="Mật khẩu"  readonly
+             <label for="register-password">Mật khẩu</label><input class="register__input" type="password" id="register-password" name="register_password" placeholder="Mật khẩu"  readonly
       onfocus="this.removeAttribute('readonly')" required>
            </div>
            <button type="submit" class="register__btn">Đăng ký</button>
@@ -67,8 +69,8 @@
     </main>
     <div id="footer-container"></div>
     </div>
-    
-    
+
+
     <script>
     // JS fetch header và chèn vào DOM
     fetch('/pages/header.html')
