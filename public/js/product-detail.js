@@ -1,5 +1,5 @@
 
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
 
 const slug = window.location.pathname.split("/")[1];
@@ -10,9 +10,17 @@ let selectedColor = null;
 let selectedVariant = null;
 
 async function loadProduct() {
-  const res = await fetch(`${API_URL}/products/${slug}`);
+  try {
+  const res = await Api.fetch(`${API_URL}/products/${slug}`);
   const data = await res.json();
+  if (!data.product) throw Api.error(502);
+  Api.list(data.variants);
   renderProduct(data);
+  } catch (error) {
+    document.getElementById("productName").textContent = error.status === 404 ? "Sản phẩm không còn khả dụng" : "Không tải được sản phẩm";
+    document.getElementById("addToCartBtn").disabled = true;
+    Api.report(error, loadProduct);
+  }
 }
 
 function renderProduct(data) {
@@ -24,7 +32,7 @@ function renderProduct(data) {
     product.nameProduct;
 
   document.getElementById("productDescription").innerHTML =
-  product.description || "";
+  SafeHTML.richText(product.description);
 
   // ===== Giá min mặc định =====
   updateMinPrice();
@@ -33,14 +41,14 @@ function renderProduct(data) {
   const mainImage = document.getElementById("mainImage");
   const thumbnails = document.getElementById("thumbnails");
 
-  mainImage.src =  product.images[0];
+  mainImage.src = SafeHTML.url(product.images[0]);
 
   thumbnails.innerHTML = "";
   product.images.forEach(img => {
-    thumbnails.innerHTML += `
-      <img src="${img}"
-           onclick="changeImage('${img}')">
-    `;
+    const thumbnail = document.createElement("img");
+    thumbnail.src = SafeHTML.url(img);
+    thumbnail.addEventListener("click", () => changeImage(img));
+    thumbnails.appendChild(thumbnail);
   });
 
   renderSizes();
@@ -57,7 +65,7 @@ function updateMinPrice() {
 
 function changeImage(img) {
   document.getElementById("mainImage").src =
-     img;
+     SafeHTML.url(img);
 }
 
 /* =========================
@@ -71,11 +79,10 @@ function renderSizes() {
   const sizes = [...new Set(allVariants.map(v => v.size))];
 
   sizes.forEach(size => {
-    sizeContainer.innerHTML += `
-      <button onclick="selectSize('${size}')">
-        ${size}
-      </button>
-    `;
+    const button = document.createElement("button");
+    button.textContent = size;
+    button.addEventListener("click", () => selectSize(size));
+    sizeContainer.appendChild(button);
   });
 }
 
@@ -86,11 +93,10 @@ function renderColors() {
   const colors = [...new Set(allVariants.map(v => v.color))];
 
   colors.forEach(color => {
-    colorContainer.innerHTML += `
-      <button onclick="selectColor('${color}')">
-        ${color}
-      </button>
-    `;
+    const button = document.createElement("button");
+    button.textContent = color;
+    button.addEventListener("click", () => selectColor(color));
+    colorContainer.appendChild(button);
   });
 }
 
@@ -147,7 +153,7 @@ function updateOptions() {
 
   // Disable SIZE theo COLOR
   sizeButtons.forEach(btn => {
-    const size = btn.innerText;
+    const size = btn.textContent;
 
     const valid = allVariants.some(v =>
       v.size === size &&
@@ -159,7 +165,7 @@ function updateOptions() {
 
   // Disable COLOR theo SIZE
   colorButtons.forEach(btn => {
-    const color = btn.innerText;
+    const color = btn.textContent;
 
     const valid = allVariants.some(v =>
       v.color === color &&
@@ -214,7 +220,7 @@ function highlightActive(containerId, value) {
       .querySelectorAll("button");
 
   buttons.forEach(btn => {
-    if (value && btn.innerText === value) {
+    if (value && btn.textContent === value) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -274,8 +280,8 @@ document.getElementById("addToCartBtn")
       return;
     }
 
-    try {
-      const res = await fetch(`${API_URL}/cart/add`, {
+    return Api.action("add-to-cart", document.getElementById("addToCartBtn"), async () => {
+      const res = await Api.user(`${API_URL}/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -293,10 +299,7 @@ document.getElementById("addToCartBtn")
 
       showPopup();
 
-    } catch (err) {
-      alert("Có lỗi xảy ra");
-      console.error(err);
-    }
+    });
 });
 
 if (document.getElementById("productName")) {

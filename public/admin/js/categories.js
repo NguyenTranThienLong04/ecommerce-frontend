@@ -1,4 +1,4 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
 
 let editingId = null; // lưu id đang sửa
@@ -6,35 +6,38 @@ let editingId = null; // lưu id đang sửa
 // ================= LOAD =================
 async function loadCategories() {
   try {
-    const res = await fetch(`${API_URL}/categories`);
-    const categories = await res.json();
+    const res = await Api.admin(`${API_URL}/categories`);
+    const categories = Api.list(await res.json());
 
     const table = document.getElementById("categoryTable");
     table.innerHTML = "";
 
     categories.forEach(category => {
-      table.innerHTML += `
-        <tr>
-          <td>${category.nameCategory}</td>
+      const row = document.createElement("tr");
+    row.innerHTML = SafeHTML.html`
+<td>${category.nameCategory}</td>
           <td>
-            <button onclick="startEdit('${category._id}', '${category.nameCategory}')">
+            <button data-action="startEdit">
               Sửa
             </button>
-            <button onclick="deleteCategory('${category._id}')">
+            <button data-action="deleteCategory">
               Xóa
             </button>
           </td>
-        </tr>
-      `;
+    `;
+    row.querySelector('[data-action="startEdit"]').addEventListener("click", () => startEdit(category._id, category.nameCategory));
+    row.querySelector('[data-action="deleteCategory"]').addEventListener("click", () => deleteCategory(category._id));
+    table.appendChild(row);
     });
 
   } catch (error) {
-    console.log(error);
+    Api.report(error, loadCategories);
   }
 }
 
 // ================= ADD / UPDATE =================
 async function addCategory() {
+  return Api.action("save-category", document.querySelector('button[onclick="addCategory()"]'), async () => {
   const name = document.getElementById("categoryName").value;
 
   if (!name) {
@@ -44,7 +47,7 @@ async function addCategory() {
 
   // Nếu đang edit thì gọi PUT
   if (editingId) {
-    await fetch(`${API_URL}/categories/${editingId}`, {
+    await Api.admin(`${API_URL}/categories/${editingId}`, {
       method: "PUT",
        headers: {
     "Content-Type": "application/json",
@@ -60,7 +63,7 @@ async function addCategory() {
 
   } else {
     // Nếu không edit thì POST
-    await fetch(`${API_URL}/categories`, {
+    await Api.admin(`${API_URL}/categories`, {
       method: "POST",
       headers: {
     "Content-Type": "application/json",
@@ -73,7 +76,8 @@ async function addCategory() {
   }
 
   document.getElementById("categoryName").value = "";
-  loadCategories();
+  await loadCategories();
+  });
 }
 
 // ================= START EDIT =================
@@ -86,14 +90,16 @@ function startEdit(id, name) {
 // ================= DELETE =================
 async function deleteCategory(id) {
   if (!confirm("Bạn chắc chắn muốn xóa?")) return;
+  return Api.action("delete-category:" + id, [...document.querySelectorAll('[data-action="deleteCategory"]')], async () => {
 
-  await fetch(`${API_URL}/categories/${id}`, {
+  await Api.admin(`${API_URL}/categories/${id}`, {
     method: "DELETE" ,headers:{ 
       Authorization: `Bearer ${localStorage.getItem("adminToken")}`
     },
   });
 
-  loadCategories();
+  await loadCategories();
+  });
 }
 
 loadCategories();

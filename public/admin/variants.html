@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="/runtime-config.js"></script>
+<script src="/js/api.js"></script>
+<link rel="stylesheet" href="/css/reliability.css">
+<script src="/vendor/dompurify.js"></script>
+<script src="/js/safe-html.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Variants</title>
@@ -19,6 +24,17 @@
   <input type="number" id="price" placeholder="Price">
   <input type="number" id="stock" placeholder="Stock">
   <button onclick="addVariant()">Thêm</button>
+  <button type="button" onclick="clearForm()">Hủy chỉnh sửa</button>
+
+  <section id="inventoryForm" hidden>
+    <h3>Điều chỉnh tồn kho</h3>
+    <p id="inventoryCurrent"></p>
+    <label for="newStock">Số lượng tồn mới</label>
+    <input type="number" id="newStock" min="0" step="1">
+    <button type="button" id="saveStock">Lưu tồn kho</button>
+    <button type="button" id="cancelStock">Hủy</button>
+    <p id="inventoryMessage" role="status"></p>
+  </section>
 
   <hr>
 
@@ -44,11 +60,14 @@
     document.getElementById('slidebar-container').innerHTML = html;
 
     // 2. Sau đó mới chạy code hiển thị email
-    const adminUser = JSON.parse(localStorage.getItem("adminUser"));
+    const adminUser = Api.stored("adminUser");
     const adminInfoElem = document.getElementById("adminInfo");
     
     if (adminUser && adminInfoElem) {
-      adminInfoElem.innerHTML = "Xin chào: <b>" + adminUser.email + "</b>";
+      adminInfoElem.textContent = "Xin chào: ";
+      const email = document.createElement("b");
+      email.textContent = adminUser.email;
+      adminInfoElem.appendChild(email);
     }
   });
 </script>

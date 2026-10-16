@@ -1,24 +1,29 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-  const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+  const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
   const list = document.getElementById("order-list");
 
   if (!list) return;
+  let orderRequest = 0;
+  const orderOwners = new Map();
 
   // ==========================
   // LOAD ORDERS
   // ==========================
   async function loadOrders() {
+    const request = ++orderRequest;
+    try {
 
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const res = await fetch(`${API_URL}/orders/my`, {
+    const res = await Api.user(`${API_URL}/orders/my`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    const orders = await res.json();
+    const orders = Api.list(await res.json());
+    if (request !== orderRequest) return;
 
     if (!orders.length) {
       list.innerHTML = `
@@ -30,11 +35,12 @@ const API_URL = BASE;
     list.innerHTML = "";
 
     orders.forEach(order => {
+      orderOwners.set(order._id, order.idUser);
 
       const date = new Date(order.createdAt)
         .toLocaleDateString("vi-VN");
 
-      list.innerHTML += `
+      list.innerHTML += SafeHTML.html`
         <tr>
           <td>#${order._id.slice(-6)}</td>
           <td>${date}</td>
@@ -55,12 +61,12 @@ const API_URL = BASE;
             </button>
   
               ${order.status === "PENDING" && order.paymentStatus !== "PAID" &&order.shippingMethod==="VNPAY"
-    ? `<button class="btn-pay-again" data-id="${order._id}">Hoàn tất thanh toán VNPAY</button>`
+    ? SafeHTML.html`<button class="btn-pay-again" data-id="${order._id}">Hoàn tất thanh toán VNPAY</button>`
     : ""} 
 
             ${
-              order.status === "PENDING"
-                ? `<button class="btn-cancel cancel-order" data-id="${order._id}">
+              order.canCancel === true
+                ? SafeHTML.html`<button class="btn-cancel cancel-order" data-id="${order._id}">
                     Hủy
                    </button>`
                 : ""
@@ -73,34 +79,33 @@ const API_URL = BASE;
 
             <div class="order-products">
 
-              ${order.items.map(item => {
+              ${(order.items || []).map(item => {
 
-                const product = item.idProductVariant.idProduct;
-                const variant = item.idProductVariant;
+                const variant = item.idProductVariant || {};
+                const product = variant.idProduct || {};
+                const snapshot = item.productSnapshot;
 
-                const img = product.images?.[0]
-                  ? product.images[0]
-                  : "https://via.placeholder.com/60";
+                const img = (snapshot ? snapshot.image : product.images?.[0]) || "/default.png";
 
-                return `
+                return SafeHTML.html`
                   <div class="order-item">
-                    <img src="${img}">
+                    <img src="${SafeHTML.url(img)}">
 
                     <div class="order-item-info">
-                      <div class="name">${product.nameProduct}</div>
+                      <div class="name">${(snapshot ? snapshot.nameProduct : product.nameProduct) || "Sản phẩm không còn thông tin"}</div>
                       <div class="variant">
-                        Size ${variant.size} | Màu ${variant.color}
+                        Size ${(snapshot ? snapshot.size : variant.size) || "—"} | Màu ${(snapshot ? snapshot.color : variant.color) || "—"}
                       </div>
                     </div>
 
                     <div class="qty">x${item.quantity}</div>
 
                     <div class="order-price">
-                      ${item.price.toLocaleString()}₫
+                      ${item.price == null ? "—" : item.price.toLocaleString()}₫
                     </div>
                   </div>
                 `;
-              }).join("")}
+              })}
 
             </div>
 
@@ -108,6 +113,11 @@ const API_URL = BASE;
         </tr>
       `;
     });
+    } catch (error) {
+      if (request !== orderRequest) return;
+      if (error.status === 401) list.replaceChildren();
+      Api.report(error, loadOrders);
+    }
   }
 
   loadOrders();
@@ -143,33 +153,11 @@ if (payAgainBtn) {
     return alert("Bạn cần đăng nhập");
   }
 
-  try {
-    const res = await fetch(`${API_URL}/vnpay/recreate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ orderId })
-    });
+  return Api.action("order:" + orderId, payAgainBtn, async () => {
+    const userId = orderOwners.get(orderId) || Api.stored("user")?.id;
+    window.location.href = await PaymentCreate.create(userId, orderId, "recreate");
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      return alert(data.message || "Lỗi tạo link thanh toán");
-    }
-
-    if (!data.paymentUrl) {
-      return alert("Không tạo được link VNPay");
-    }
-
-    // chuyển sang VNPay
-    window.location.href = data.paymentUrl;
-
-  } catch (error) {
-    console.error(error);
-    alert("Lỗi khi tạo link thanh toán");
-  }
+  });
 }
     // ❌ CANCEL ORDER
     const cancelBtn = e.target.closest(".cancel-order");
@@ -178,8 +166,8 @@ if (payAgainBtn) {
       const id = cancelBtn.dataset.id;
 
       if (!confirm("Bạn có chắc muốn hủy đơn này?")) return;
-
-      const res = await fetch(`${API_URL}/orders/${id}/cancel`, {
+      return Api.action("order:" + id, cancelBtn, async () => {
+      const res = await Api.user(`${API_URL}/orders/${id}/cancel`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`
@@ -195,7 +183,8 @@ if (payAgainBtn) {
 
       alert("Hủy thành công");
 
-      loadOrders(); // reload lại list
+      await loadOrders();
+      });
     }
 
   });

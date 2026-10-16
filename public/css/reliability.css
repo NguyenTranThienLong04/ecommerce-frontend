@@ -1,0 +1,8 @@
+body :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #165dcc !important;
+  outline-offset: 2px;
+}
+#api-notice { padding: 12px; background: #fff4df; color: #412d0c; position: relative; z-index: 100051; }
+#api-notice button, #api-notice a { margin-left: 8px; }
+[aria-busy="true"] { cursor: progress; }
+.chat-status { padding: 8px; font-size: 13px; }

@@ -1,4 +1,4 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
 
 // ===============================
@@ -14,21 +14,26 @@ window.location.href="/login";
 return;
 }
 
-const res = await fetch(`${API_URL}/auth/me`,{
+const res = await Api.user(`${API_URL}/auth/me`,{
 headers:{ Authorization:`Bearer ${token}` }
 });
 
 const user = await res.json();
+if (!user || typeof user.email !== "string") throw Api.error(502);
 
-document.getElementById("sidebar-name").innerText = user.name;
-document.getElementById("hello-user").innerText = `Xin chào, ${user.name}`;
-document.getElementById("account-name").innerText = user.name;
+document.getElementById("sidebar-name").innerText = user.name || "";
+document.getElementById("hello-user").innerText = `Xin chào, ${user.name || ""}`;
+document.getElementById("account-name").innerText = user.name || "";
 document.getElementById("account-email").innerText = user.email;
-document.getElementById("loyalty").innerText = user.loyaltyPoints;
+document.getElementById("loyalty").innerText = user.loyaltyPoints ?? 0;
 
 }
 
-loadUser();
+loadUser().catch(error => Api.report(error, loadUser));
+document.querySelector("#password form")?.addEventListener("submit", event => {
+  event.preventDefault();
+  Api.report(Api.error(400, { message: "Chức năng đổi mật khẩu hiện chưa được hỗ trợ." }));
+});
 
 
 

@@ -1,10 +1,11 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = `${BASE}/banners`;
 // LOAD BANNERS
 async function loadBanners(){
+try {
 
-const res = await fetch(API_URL);
-const banners = await res.json();
+const res = await Api.admin(API_URL);
+const banners = Api.list(await res.json());
 
 const tbody = document.querySelector("#banner-table tbody");
 
@@ -12,11 +13,10 @@ tbody.innerHTML = "";
 
 banners.forEach(banner => {
 
-tbody.innerHTML += `
-<tr>
-
+const row = document.createElement("tr");
+    row.innerHTML = SafeHTML.html`
 <td>
-<img src="${banner.image}" width="120">
+<img src="${SafeHTML.url(banner.image)}" width="120">
 </td>
 
 <td>${banner.title || ""}</td>
@@ -26,15 +26,17 @@ tbody.innerHTML += `
 <td>${banner.status ? "Active" : "Hidden"}</td>
 
 <td>
-<button onclick="editBanner('${banner._id}')">Edit</button>
-<button onclick="deleteBanner('${banner._id}')">Delete</button>
+<button data-action="editBanner">Edit</button>
+<button data-action="deleteBanner">Delete</button>
 </td>
-
-</tr>
-`;
+    `;
+    row.querySelector('[data-action="editBanner"]').addEventListener("click", () => editBanner(banner._id));
+    row.querySelector('[data-action="deleteBanner"]').addEventListener("click", () => deleteBanner(banner._id));
+    tbody.appendChild(row);
 
 });
 
+} catch (error) { Api.report(error, loadBanners); }
 }
 
 loadBanners();
@@ -42,6 +44,7 @@ loadBanners();
 
 // ADD BANNER
 async function addBanner(){
+return Api.action("save-banner", document.querySelector('button[onclick="addBanner()"]'), async () => {
 
 const image = document.getElementById("image").files[0];
 if (!image) {
@@ -64,7 +67,7 @@ formData.append("title", title);
 formData.append("link", link);
 formData.append("order", order);
 
-await fetch(API_URL,{
+await Api.admin(API_URL,{
 method:"POST",
  headers: {
     Authorization: `Bearer ${localStorage.getItem("adminToken")}`
@@ -77,8 +80,8 @@ document.getElementById("link").value="";
 document.getElementById("order").value="";
 document.getElementById("image").value="";
 
-loadBanners();
-
+await loadBanners();
+});
 }
 
 async function editBanner(id){
@@ -86,8 +89,10 @@ async function editBanner(id){
 const title = prompt("New title");
 const link = prompt("New link");
 const order = prompt("New order");
+if ([title, link, order].some(value => value === null)) return;
+const submit = async () => {
 
-await fetch(`${API_URL}/${id}`,{
+await Api.admin(`${API_URL}/${id}`,{
 method:"PUT",
 headers:{
     Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
@@ -100,21 +105,25 @@ order
 })
 });
 
-loadBanners();
-
+await loadBanners();
+};
+const save = () => Api.action("edit-banner:" + id, [...document.querySelectorAll('[data-action="editBanner"]')], submit,
+  error => Api.report(error, save));
+return save();
 }
 
 // DELETE
 async function deleteBanner(id){
 
 if(!confirm("Delete banner?")) return;
+return Api.action("delete-banner:" + id, [...document.querySelectorAll('[data-action="deleteBanner"]')], async () => {
 
-await fetch(`${API_URL}/${id}`,{
+await Api.admin(`${API_URL}/${id}`,{
 method:"DELETE",headers:{ 
     Authorization: `Bearer ${localStorage.getItem("adminToken")}`
 },
 });
 
-loadBanners();
-
+await loadBanners();
+});
 }

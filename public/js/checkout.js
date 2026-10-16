@@ -1,8 +1,17 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 
 const API_URL =BASE;
 
 let addressList = [];
+let checkoutCart = null;
+let checkoutEstimate = null;
+let checkoutPending = null;
+let checkoutStorageKey = null;
+let checkoutBusy = false;
+let checkoutFinished = false;
+let checkoutStateInvalid = false;
+let paymentMethods = ["COD"];
+const shippingFields = ["receiverName", "phone", "addressLine", "ward", "district", "city"];
 
 
 /* ===============================
@@ -91,47 +100,68 @@ window.location.href="/login";
 return;
 }
 
-const res = await fetch(`${API_URL}/cart`,{
+const res = await Api.user(`${API_URL}/cart`,{
 headers:{Authorization:"Bearer "+token}
 });
 
+if (!res.ok) throw new Error("Không tải được giỏ hàng");
 const data = await res.json();
 const items = data.items || [];
+checkoutCart = data.cart;
+checkoutEstimate = data.checkout;
+paymentMethods = Array.isArray(data.paymentMethods) ? data.paymentMethods.filter(method => ["COD", "VNPAY"].includes(method)) : ["COD"];
+document.querySelectorAll('input[name="payment"]').forEach(input => {
+  input.closest("label").hidden = !paymentMethods.includes(input.value);
+});
+if (!paymentMethods.includes(getSelectedPayment())) document.querySelector('input[value="COD"]').checked = true;
+checkoutStorageKey = "checkoutAttempt:" + checkoutCart.idUser;
+checkoutStateInvalid = false;
+try {
+  const saved = sessionStorage.getItem(checkoutStorageKey);
+  checkoutPending = saved === null ? null : JSON.parse(saved);
+  if (saved !== null && (!checkoutPending?.payload ||
+      ["idempotencyKey", "cartId", "cartSnapshot", "shippingMethod"].some(key => typeof checkoutPending.payload[key] !== "string" || !checkoutPending.payload[key]))) {
+    throw new Error("Invalid saved attempt");
+  }
+} catch {
+  checkoutPending = null;
+  // Do not discard an unresolved key and silently create another order.
+  checkoutStateInvalid = true;
+}
 
 const container = document.getElementById("orderItems");
 container.innerHTML="";
 
-let subTotal = 0;
-const shippingFee = 30000;
-
 for(const item of items){
 
-const variant = item.idProductVariant;
-if(!variant) continue;
+const variant = item.idProductVariant || {};
+let product = typeof variant.idProduct === "object" ? variant.idProduct : null;
+if (!product && variant.idProduct) {
+  try {
+    const response = await Api.fetch(`${API_URL}/products/${variant.idProduct}`);
+    if (response.ok) product = (await response.json()).product;
+  } catch { /* Keep the stale row visible. */ }
+}
+const available = !!product && item.availability?.available !== false;
+product ||= {};
 
-const productRes = await fetch(`${API_URL}/products/${variant.idProduct}`);
-const productData = await productRes.json();
-const product = productData.product;
-
-const price = variant.price || 0;
 const quantity = item.quantity || 0;
+const line = checkoutEstimate?.lines?.find(line => line.itemId === item._id);
+const itemTotal = line?.lineTotal;
 
-const itemTotal = price * quantity;
-
-subTotal += itemTotal;
-
-container.innerHTML += `
-<div class="order-item">
+container.innerHTML += SafeHTML.html`
+<div class="order-item" data-item-id="${item._id}">
 
 <div class="order-product">
 
 <img
-src="${product.images?.[0]||""}"
-onerror="this.src='default.png'"
+src="${SafeHTML.url(product.images?.[0])}"
+class="checkout-product-image"
 >
 
 <div class="order-info">
-<p class="order-name">${product.nameProduct}</p>
+<p class="order-name">${product.nameProduct || "Sản phẩm không còn thông tin"}</p>
+${!available ? SafeHTML.html`<p class="cart-unavailable">${item.availability?.message || "Sản phẩm không còn khả dụng"}</p><a href="/cart">Về giỏ hàng để xóa dòng này</a>` : ""}
 <p>Size: ${variant.size}</p>
 <p>Color: ${variant.color}</p>
 <p>Số lượng: ${quantity}</p>
@@ -140,20 +170,20 @@ onerror="this.src='default.png'"
 </div>
 
 <div class="order-price">
-${itemTotal.toLocaleString("vi-VN")} đ
+${itemTotal == null ? "—" : itemTotal.toLocaleString("vi-VN") + " đ"}
 </div>
 
 </div>
 `;
 }
 
-const total = subTotal + shippingFee;
-
-document.getElementById("subTotal").innerText =
-subTotal.toLocaleString("vi-VN")+" đ";
-
-document.getElementById("orderTotal").innerText =
-total.toLocaleString("vi-VN")+" đ";
+displayTotals(checkoutEstimate);
+if (checkoutStateInvalid) {
+  checkoutMessage("Không đọc được lần đặt hàng đã lưu. Vui lòng kiểm tra mục Đơn hàng trong tài khoản hoặc liên hệ hỗ trợ trước khi đặt thêm.");
+} else if (!checkoutEstimate?.snapshot && !checkoutPending) {
+  checkoutMessage(checkoutEstimate?.message || "Giỏ hàng chưa sẵn sàng");
+}
+updateCheckoutButton();
 
 }
 
@@ -166,7 +196,7 @@ async function loadUserInfo(){
 
 const token = localStorage.getItem("token");
 
-const res = await fetch(`${API_URL}/auth/me`,{
+const res = await Api.user(`${API_URL}/auth/me`,{
 headers:{Authorization:"Bearer "+token}
 });
 
@@ -187,11 +217,11 @@ async function loadAddressBook(){
 
 const token = localStorage.getItem("token");
 
-const res = await fetch(`${API_URL}/addresses`,{
+const res = await Api.user(`${API_URL}/addresses`,{
 headers:{Authorization:"Bearer "+token}
 });
 
-const addresses = await res.json();
+const addresses = Api.list(await res.json());
 
 addressList = addresses;
 
@@ -245,170 +275,128 @@ if(addr) fillAddress(addr);
 }
 
 });
+// Editing a saved address means using the existing free-form address flow.
+shippingFields.forEach(field => document.getElementById(field).addEventListener("input", () => {
+  document.getElementById("addressBook").value = "";
+}));
 //
 function getSelectedPayment(){
   const checked = document.querySelector('input[name="payment"]:checked');
   return checked ? checked.value : "COD";
 }
 
-function handleCheckout(){
+function checkoutMessage(message) {
+  document.getElementById("checkoutMessage").textContent = message;
+}
 
-  const data = {
-    receiverName:document.getElementById("receiverName").value,
-    phone:document.getElementById("phone").value,
-    addressLine:document.getElementById("addressLine").value,
-    ward:document.getElementById("ward").value,
-    district:document.getElementById("district").value,
-    city:document.getElementById("city").value
-  };
-
-  const errors = validateCheckout(data);
-
-  if (Object.keys(errors).length > 0) {
-    showErrors(errors);
-    return; // ❌ KHÔNG disable button
-  }
-
-  // ✅ chỉ disable khi hợp lệ
-  const btn = document.getElementById("checkoutBtn");
-  btn.disabled = true;
-
-  const method = getSelectedPayment();
-
-  if(method === "VNPAY"){
-    payVNPay();
-  }else{
-    placeOrder();
+function displayTotals(quote) {
+  for (const [id, field] of [["subTotal", "subtotal"], ["shippingFee", "shippingFee"], ["orderTotal", "total"]]) {
+    document.getElementById(id).textContent = quote?.[field] == null ? "—" : quote[field].toLocaleString("vi-VN") + " đ";
   }
 }
-/* ===============================
-   PLACE ORDER
-================================ */
 
-async function placeOrder(){
-
-const token = localStorage.getItem("token");
-
-const data = {
-receiverName:document.getElementById("receiverName").value,
-phone:document.getElementById("phone").value,
-addressLine:document.getElementById("addressLine").value,
-ward:document.getElementById("ward").value,
-district:document.getElementById("district").value,
-city:document.getElementById("city").value
-};
-
-const errors = validateCheckout(data);
-
-if (Object.keys(errors).length > 0) {
-  showErrors(errors);
-  return;
+function updateCheckoutButton() {
+  const button = document.getElementById("checkoutBtn");
+  button.disabled = checkoutBusy || checkoutFinished || checkoutStateInvalid || (!checkoutPending && !checkoutEstimate?.snapshot);
+  button.textContent = checkoutPending ? "Thử lại đặt hàng" : "Đặt hàng";
+  const locked = !!checkoutPending || checkoutFinished;
+  shippingFields.forEach(field => { document.getElementById(field).readOnly = locked; });
+  document.getElementById("addressBook").disabled = locked;
+  document.querySelectorAll('input[name="payment"]').forEach(input => { input.disabled = locked || !paymentMethods.includes(input.value); });
 }
 
-const res=await fetch(`${API_URL}/orders`,{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-Authorization:"Bearer "+token
-},
-body:JSON.stringify({
-...data,
-shippingMethod:"COD",
-shippingFee:30000
-})
-});
-
-const result=await res.json();
-
-if(!res.ok){
-alert(result.message);
-return;
+function saveAttempt(attempt) {
+  if (attempt) sessionStorage.setItem(checkoutStorageKey, JSON.stringify(attempt));
+  else sessionStorage.removeItem(checkoutStorageKey);
+  checkoutPending = attempt;
 }
 
-alert("Đặt hàng thành công!");
-
-window.location.href="/";
-
-}
-//
-async function payVNPay(){
-
-const token = localStorage.getItem("token");
-
-const data = {
-receiverName:document.getElementById("receiverName").value,
-phone:document.getElementById("phone").value,
-addressLine:document.getElementById("addressLine").value,
-ward:document.getElementById("ward").value,
-district:document.getElementById("district").value,
-city:document.getElementById("city").value
-};
-
-// validate giống COD
-const errors = validateCheckout(data);
-
-if (Object.keys(errors).length > 0) {
-  showErrors(errors);
-  return;
+function restoreAttempt() {
+  if (!checkoutPending) return;
+  const payload = checkoutPending.payload;
+  shippingFields.forEach(field => { document.getElementById(field).value = payload[field] || ""; });
+  document.getElementById("addressBook").value = payload.addressId || "";
+  document.querySelectorAll('input[name="payment"]').forEach(input => {
+    input.checked = input.value === payload.shippingMethod;
+  });
+  checkoutMessage("Lần đặt hàng trước chưa được xác nhận. Bấm thử lại để kiểm tra kết quả; giỏ hàng hiện tại sẽ không bị đặt thêm.");
+  updateCheckoutButton();
 }
 
-// 1️⃣ tạo order
-const resOrder = await fetch(`${API_URL}/orders`,{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-Authorization:"Bearer "+token
-},
-body:JSON.stringify({
-...data,
-shippingMethod:"VNPAY",
-shippingFee:30000
-})
-});
-
-const result = await resOrder.json();
-console.log("ORDER ERROR:", result);
-if(!resOrder.ok){
-alert(result.message);
-return;
+async function handleCheckout() {
+  if (checkoutBusy || checkoutFinished || checkoutStateInvalid) return;
+  checkoutBusy = true;
+  updateCheckoutButton();
+  try {
+    await checkoutReady;
+    if (checkoutStateInvalid || !checkoutCart || (!checkoutPending && !checkoutEstimate?.snapshot)) return;
+    if (!checkoutPending) {
+      if (!paymentMethods.includes(getSelectedPayment())) throw Api.error(409,
+        { message: "Phương thức thanh toán này hiện không khả dụng. Vui lòng chọn COD." });
+      const address = Object.fromEntries(shippingFields.map(field => [field, document.getElementById(field).value]));
+      const errors = validateCheckout(address);
+      if (Object.keys(errors).length) { showErrors(errors); return; }
+      const addressId = document.getElementById("addressBook").value;
+      // Persist the immutable intent BEFORE sending. Timeout/reload retries keep this key and snapshot.
+      saveAttempt({ payload: {
+        ...address, ...(addressId ? { addressId } : {}), shippingMethod: getSelectedPayment(),
+        cartId: checkoutCart._id, cartSnapshot: checkoutEstimate.snapshot, idempotencyKey: crypto.randomUUID()
+      } });
+    }
+    updateCheckoutButton();
+    checkoutMessage("Đang xác nhận đơn hàng...");
+    const token = localStorage.getItem("token");
+    const headers = { "Content-Type": "application/json", Authorization: "Bearer " + token };
+    const res = await Api.user(`${API_URL}/orders`, {
+      method: "POST", headers, body: JSON.stringify(checkoutPending.payload), allowHttpErrors: true
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      // A definitive rejection permits a new attempt; ambiguous outcomes keep the original key.
+      if (res.status < 500 && result.code !== "CHECKOUT_RETRY") {
+        saveAttempt(null);
+        await loadCheckoutCart();
+      }
+      checkoutMessage(result.message || "Chưa xác nhận được đơn hàng. Vui lòng thử lại.");
+      return;
+    }
+    const order = result.order;
+    if (!order?._id) throw new Error("Missing order confirmation");
+    displayTotals(order);
+    if (order.status === "CANCEL") {
+      saveAttempt(null);
+      await loadCheckoutCart();
+      checkoutMessage("Đơn hàng trước đã bị hủy. Vui lòng kiểm tra giỏ hàng trước khi đặt lại.");
+      return;
+    }
+    let destination = "/";
+    if (order.shippingMethod === "VNPAY" && order.paymentStatus !== "PAID") {
+      // A payment-link failure retries checkout with the SAME key, then uses that same order ID.
+      destination = await PaymentCreate.create(checkoutCart.idUser, order._id);
+    } else if (order.paymentStatus === "PAID") {
+      destination = "/account";
+    }
+    checkoutFinished = true;
+    saveAttempt(null);
+    checkoutMessage("Đặt hàng thành công!");
+    window.location.href = destination;
+  } catch (error) {
+    checkoutMessage(error.status === 401 ? error.message : "Chưa xác nhận được kết quả. Bấm thử lại để kiểm tra lần đặt hàng này.");
+  } finally {
+    checkoutBusy = false;
+    updateCheckoutButton();
+  }
 }
 
-const order = result.order;
-
-
-// 2️⃣ gọi VNPay
-const res = await fetch(`${API_URL}/vnpay/create`,{
-method:"POST",
-headers:{
-"Content-Type":"application/json",
-Authorization:"Bearer "+token
-},
-body:JSON.stringify({
-orderId: order._id
-})
-});
-
-if(!res.ok){
-  alert("Lỗi tạo thanh toán");
-  return;
-}
-
-const payment = await res.json();
-
-if(!payment.paymentUrl){
-  alert("Không tạo được link VNPay");
-  return;
-}
-
-window.location.href = payment.paymentUrl;
-
-}
-
-
-/* ===============================
-   INIT
-================================ */
-
-loadCheckoutCart();
-loadUserInfo();
-loadAddressBook();
+document.getElementById("orderItems").addEventListener("error", event => {
+  if (event.target.matches("img.checkout-product-image") && !event.target.src.endsWith("/default.png")) event.target.src = "/default.png";
+}, true);
+const checkoutReady = Promise.all([loadCheckoutCart(), loadUserInfo(), loadAddressBook()])
+  .then(restoreAttempt)
+  .catch(error => {
+    checkoutMessage(error.message || "Không tải được thông tin thanh toán. Vui lòng tải lại trang.");
+    Api.report(error, async () => {
+      await Promise.all([loadCheckoutCart(), loadUserInfo(), loadAddressBook()]);
+      restoreAttempt();
+    });
+  });

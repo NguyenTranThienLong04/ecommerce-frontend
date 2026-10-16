@@ -1,4 +1,4 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
 
 let page = 1;
@@ -6,12 +6,14 @@ let totalPages = 1;
 
 let editingProductId = null;
 let oldImages = [];
+let productsRequest = 0, editRequest = 0;
 
 // LOAD CATEGORY
 async function loadCategoriesToSelect() {
+  try {
 
-  const res = await fetch(`${API_URL}/categories`);
-  const categories = await res.json();
+  const res = await Api.admin(`${API_URL}/categories`);
+  const categories = Api.list(await res.json());
 
   const select = document.getElementById("categorySelect");
 
@@ -19,7 +21,7 @@ async function loadCategoriesToSelect() {
 
   categories.forEach(c => {
 
-    select.innerHTML += `
+    select.innerHTML += SafeHTML.html`
       <option value="${c._id}">
         ${c.nameCategory}
       </option>
@@ -27,18 +29,31 @@ async function loadCategoriesToSelect() {
 
   });
 
+  } catch (error) { Api.report(error, loadCategoriesToSelect); }
 }
 
 // LOAD PRODUCTS
-async function loadProducts() {
+async function loadProducts(navigate = true) {
+  const request = ++productsRequest;
+  try {
 
   const search = document.getElementById("searchInput").value;
+  if (navigate) {
+    const params = new URLSearchParams({ page, search });
+    const next = location.pathname + "?" + params.toString();
+    if (location.pathname + location.search !== next) history.pushState({}, "", next);
+  }
+  document.getElementById("productTable").replaceChildren();
+  document.getElementById("pageInfo").textContent = "Đang tải...";
 
-  const res = await fetch(
-    `${API_URL}/products?page=${page}&limit=10&search=${search}`
+  const res = await Api.admin(
+    `${API_URL}/products/admin?page=${page}&limit=10&search=${encodeURIComponent(search)}`,
+    { headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` } }
   );
 
   const data = await res.json();
+  if (request !== productsRequest) return;
+  Api.list(data.products);
 
   totalPages = data.totalPages;
 
@@ -57,17 +72,16 @@ async function loadProducts() {
       ...(product.selectedTags || []),
       ...(product.customTags || [])
     ].join(", ");
-    table.innerHTML += `
-      <tr>
-
-        <td>
-          <img src="${image}" width="60">
+    const row = document.createElement("tr");
+    row.innerHTML = SafeHTML.html`
+<td>
+          <img src="${SafeHTML.url(image)}" width="60">
         </td>
 
-        <td>${product.nameProduct}</td>
+        <td>${product.nameProduct}${product.archivedAt ? " (Ngừng bán)" : ""}</td>
 
         <td>
-          ${(product.description || "").slice(0,80)}...
+          ${SafeHTML.textFromHTML(product.description).slice(0,80)}...
         </td>
 
         <td>${product.minPrice || 0} đ</td>
@@ -78,29 +92,38 @@ async function loadProducts() {
 
         <td>
 
-          <button onclick="goToVariants('${product._id}')">
+          <button data-action="goToVariants">
             Variants
           </button>
 
-          <button onclick="editProduct('${product._id}')">
+          <button data-action="editProduct">
             Edit
           </button>
 
-          <button onclick="deleteProduct('${product._id}')">
-            Delete
+          <button data-action="deleteProduct">
+            Ngừng bán
           </button>
 
         </td>
-
-      </tr>
     `;
+    row.querySelector('[data-action="goToVariants"]').addEventListener("click", () => goToVariants(product._id));
+    row.querySelector('[data-action="editProduct"]').addEventListener("click", () => editProduct(product._id));
+    row.querySelector('[data-action="deleteProduct"]').addEventListener("click", () => deleteProduct(product._id));
+    table.appendChild(row);
 
   });
 
+  } catch (error) {
+    if (request === productsRequest) {
+      document.getElementById("pageInfo").textContent = "Không tải được sản phẩm";
+      Api.report(error, () => loadProducts(false));
+    }
+  }
 }
 
 // ADD / UPDATE PRODUCT
 async function addProduct() {
+  return Api.action("save-product", document.querySelector('button[onclick="addProduct()"]'), async () => {
 
   const name = document.getElementById("productName").value;
 
@@ -158,7 +181,7 @@ formData.append(
 "customTags",
 JSON.stringify(customTags)
 );
-  const res = await fetch(url, {
+  const res = await Api.admin(url, {
     method: method,
     headers: {
     Authorization: `Bearer ${localStorage.getItem("adminToken")}`
@@ -175,23 +198,29 @@ JSON.stringify(customTags)
 
   clearForm();
 
-  loadProducts();
-
+  await loadProducts();
+  });
 }
 
 // EDIT PRODUCT
 async function editProduct(id) {
+  const request = ++editRequest;
+  try {
 
-  const res = await fetch(`${API_URL}/products/${id}`);
+  const res = await Api.admin(`${API_URL}/products/admin/${id}`, {
+    headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
+  });
 
   const data = await res.json();
+  if (request !== editRequest) return;
+  if (!data.product) throw Api.error(502);
 
   const product = data.product;
 
   document.getElementById("productName").value =
     product.nameProduct;
 
-  editor.setData(product.description || "");
+  editor.setData(String(SafeHTML.richText(product.description)));
 
   document.getElementById("categorySelect").value =
     product.idCategory?._id;
@@ -208,9 +237,8 @@ async function editProduct(id) {
 
     product.selectedTags.forEach(tag=>{
 
-      const checkbox = document.querySelector(
-        `.tag-checkbox[value="${tag}"]`
-      );
+      const checkbox = [...document.querySelectorAll(".tag-checkbox")]
+        .find(input => input.value === tag);
 
       if(checkbox) checkbox.checked = true;
 
@@ -225,29 +253,32 @@ async function editProduct(id) {
       product.customTags.join(", ");
 
   }
+  } catch (error) { if (request === editRequest) Api.report(error, () => editProduct(id)); }
 }
 
 // DELETE
 async function deleteProduct(id) {
 
-  if (!confirm("Bạn chắc chắn muốn xóa?")) return;
+  if (!confirm("Ngừng bán sản phẩm và tất cả biến thể?")) return;
+  return Api.action("archive-product:" + id, [...document.querySelectorAll('[data-action="deleteProduct"]')], async () => {
 
-  await fetch(`${API_URL}/products/${id}`, {
+  const res = await Api.admin(`${API_URL}/products/${id}`, {
     method: "DELETE",
     headers: {
     Authorization: `Bearer ${localStorage.getItem("adminToken")}`
   }
   });
 
-  loadProducts();
-
+  if (!res.ok) return alert((await res.json()).message || "Không thể ngừng bán sản phẩm");
+  await loadProducts();
+  });
 }
 
 // VARIANTS
 function goToVariants(productId) {
 
   window.location.href =
-    `/admin/variants.html?id=${productId}`;
+    `/admin/variants.html?id=${encodeURIComponent(productId)}`;
 
 }
 
@@ -278,6 +309,7 @@ function prevPage() {
 
 // RESET FORM
 function clearForm() {
+  ++editRequest;
 
   editingProductId = null;
 
@@ -297,4 +329,12 @@ document.getElementById("customTags").value = "";
 
 // INIT
 loadCategoriesToSelect();
-loadProducts();
+function searchProducts() { page = 1; loadProducts(); }
+function restoreProductsURL() {
+  const params = new URLSearchParams(location.search);
+  page = Math.max(1, parseInt(params.get("page")) || 1);
+  document.getElementById("searchInput").value = params.get("search") || "";
+  loadProducts(false);
+}
+window.addEventListener("popstate", restoreProductsURL);
+restoreProductsURL();

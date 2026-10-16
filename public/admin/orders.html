@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="/runtime-config.js"></script>
+<script src="/js/api.js"></script>
+<link rel="stylesheet" href="/css/reliability.css">
+<script src="/vendor/dompurify.js"></script>
+<script src="/js/safe-html.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Orders</title>
@@ -90,11 +95,14 @@ fetch('/admin/slidebar.html')
 
 document.getElementById('slidebar-container').innerHTML = html;
 
-const adminUser = JSON.parse(localStorage.getItem("adminUser"));
+const adminUser = Api.stored("adminUser");
 const adminInfoElem = document.getElementById("adminInfo");
 
 if (adminUser && adminInfoElem) {
-adminInfoElem.innerHTML = "Xin chào: <b>" + adminUser.email + "</b>";
+adminInfoElem.textContent = "Xin chào: ";
+      const email = document.createElement("b");
+      email.textContent = adminUser.email;
+      adminInfoElem.appendChild(email);
 }
 
 });

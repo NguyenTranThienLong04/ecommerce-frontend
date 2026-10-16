@@ -1,27 +1,31 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
 
 let allOrders = [];
 let currentPage = 1;
 const perPage = 5;
+let ordersRequest = 0;
 
 async function loadOrders(){
+const request = ++ordersRequest;
+try {
 
 const token = localStorage.getItem("adminToken");
 
-const res = await fetch(`${API_URL}/orders`,{
+const res = await Api.admin(`${API_URL}/orders`,{
 headers:{
 Authorization:`Bearer ${token}`
 }
 });
 
-const data = await res.json();
+const data = Api.list(await res.json());
+if (request !== ordersRequest) return;
 allOrders = data;
 
 renderStats();
 
 renderOrders();
-
+} catch (error) { if (request === ordersRequest) Api.report(error, loadOrders); }
 }
 
 function renderStats(){
@@ -39,11 +43,13 @@ allOrders.filter(o=>o.status==="DONE").length;
 
 }
 
-function renderOrders(){
+function renderOrders(navigate = false){
 
 const list = document.getElementById("order-list");
 
 let orders = filterOrders();
+currentPage = Math.min(currentPage, Math.max(1, Math.ceil(orders.length / perPage)));
+if (navigate) updateOrdersURL();
 
 const start = (currentPage-1)*perPage;
 const paginated = orders.slice(start,start+perPage);
@@ -61,33 +67,32 @@ const itemsHtml = items.map(item=>{
 
 const product=item.idProductVariant?.idProduct || {};
 const variant=item.idProductVariant || {};
+const snapshot=item.productSnapshot;
 
-const img=product.images?.[0]
-? product.images[0]
-: "https://via.placeholder.com/60";
+const img=(snapshot ? snapshot.image : product.images?.[0]) || "/default.png";
 
-return`
+return SafeHTML.html`
 
 <div class="order-item">
 
-<img src="${img}">
+<img src="${SafeHTML.url(img)}">
 
 <div class="order-item-info">
-<div><b>${product.nameProduct}</b></div>
-<div>Size ${variant.size} | ${variant.color}</div>
+<div><b>${(snapshot ? snapshot.nameProduct : product.nameProduct) || "Sản phẩm không còn thông tin"}</b></div>
+<div>Size ${(snapshot ? snapshot.size : variant.size) || "—"} | ${(snapshot ? snapshot.color : variant.color) || "—"}</div>
 </div>
 
 <div>x${item.quantity}</div>
 
-<div>${item.price.toLocaleString()}₫</div>
+<div>${item.price == null ? "—" : item.price.toLocaleString()}₫</div>
 
 </div>
 
 `;
 
-}).join("");
+});
 
-list.innerHTML+=`
+list.innerHTML+=SafeHTML.html`
 
 <tr>
 
@@ -117,11 +122,8 @@ ${order.shippingMethod || "COD"}
 <td>
 
 <select class="status-select" data-id="${order._id}">
-<option value="PENDING">PENDING</option>
-<option value="CONFIRMED">CONFIRMED</option>
-<option value="SHIPPING">SHIPPING</option>
-<option value="DONE">DONE</option>
-<option value="CANCEL">CANCEL</option>
+${[order.status, ...(order.allowedTransitions || [])].map(status =>
+  SafeHTML.html`<option value="${status}">${status}</option>`)}
 </select>
 
 <button class="view-order" data-id="${order._id}">
@@ -195,7 +197,7 @@ container.innerHTML="";
 
 for(let i=1;i<=pageCount;i++){
 
-container.innerHTML+=`
+container.innerHTML+=SafeHTML.html`
 <button class="page-btn ${i===currentPage?"active":""}" data-page="${i}">
 ${i}
 </button>
@@ -206,7 +208,7 @@ ${i}
 document.querySelectorAll(".page-btn").forEach(btn=>{
 btn.onclick=()=>{
 currentPage=Number(btn.dataset.page);
-renderOrders();
+renderOrders(true);
 }
 });
 
@@ -232,14 +234,18 @@ row.style.display=row.style.display==="none"
 
 document.querySelectorAll(".status-select").forEach(select=>{
 
-select.value=allOrders.find(o=>o._id===select.dataset.id).status;
+const order=allOrders.find(o=>o._id===select.dataset.id);
+select.value=order.status;
+select.disabled=!(order.allowedTransitions || []).length;
 
 select.onchange=async()=>{
+if (select.disabled) return;
 
 const id=select.dataset.id;
 const status=select.value;
 
-await fetch(`${API_URL}/orders/${id}/status`,{
+return Api.action("order-status:" + id, select, async () => {
+await Api.admin(`${API_URL}/orders/${id}/status`,{
 
 method:"PUT",
 
@@ -252,7 +258,13 @@ body:JSON.stringify({status})
 
 });
 
-loadOrders();
+await loadOrders();
+}, async error => {
+select.value=order.status;
+alert(error.message);
+Api.report(error);
+if (error.status === 409) await loadOrders();
+});
 
 };
 
@@ -262,12 +274,28 @@ loadOrders();
 
 document.getElementById("searchOrder").oninput=()=>{
 currentPage=1;
-renderOrders();
+renderOrders(true);
 };
 
 document.getElementById("statusFilter").onchange=()=>{
 currentPage=1;
-renderOrders();
+renderOrders(true);
 };
 
+function updateOrdersURL() {
+const params = new URLSearchParams({ page: currentPage,
+  search: document.getElementById("searchOrder").value,
+  status: document.getElementById("statusFilter").value });
+const next = location.pathname + "?" + params.toString();
+if (location.pathname + location.search !== next) history.pushState({}, "", next);
+}
+function restoreOrdersURL(render = true) {
+const params = new URLSearchParams(location.search);
+currentPage = Math.max(1, parseInt(params.get("page")) || 1);
+document.getElementById("searchOrder").value = params.get("search") || "";
+document.getElementById("statusFilter").value = params.get("status") || "";
+if (render) renderOrders();
+}
+window.addEventListener("popstate", () => restoreOrdersURL());
+restoreOrdersURL(false);
 loadOrders();

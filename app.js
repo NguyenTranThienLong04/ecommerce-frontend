@@ -1,6 +1,19 @@
 const express = require('express');
 const path = require('path');
+function createApp(config) {
 const app = express();
+app.get('/health/live', (req, res) => res.json({ status: 'live' }));
+app.get('/runtime-config.js', (req, res) => {
+  res.set('Cache-Control', 'no-store').type('application/javascript')
+    .send('window.AppConfig = Object.freeze(' + JSON.stringify(config.public).replace(/</g, '\\u003c') + ');');
+});
+app.get('/vendor/socket.io.min.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/socket.io-client/dist/socket.io.min.js'));
+});
+
+app.get('/vendor/dompurify.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'node_modules/dompurify/dist/purify.min.js'));
+});
 
 // serve static folder
 app.use(express.static(path.join(__dirname, 'public')));
@@ -31,10 +44,13 @@ app.get("/account", (req, res) => {
 });
 
 app.get("/success", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/pages/success.html"));
+  res.sendFile(path.join(__dirname, "public/pages/payment-result.html"));
 });
 app.get("/fail", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/pages/fail.html"));
+  res.sendFile(path.join(__dirname, "public/pages/payment-result.html"));
+});
+app.get("/payment-result", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/pages/payment-result.html"));
 });
 
 app.get('/', (req, res) => {
@@ -88,5 +104,16 @@ app.get('/:slug', (req, res) => {
   );
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+return app;
+}
+function start(env = process.env) {
+  const config = require('./config')(env);
+  const app = createApp(config);
+  const server = app.listen(config.port, config.host, () => console.log('Frontend ready on port ' + server.address().port));
+  return server;
+}
+module.exports = { createApp, start };
+if (require.main === module) {
+  if (!process.env.BACKEND_URL && require('node:fs').existsSync('.env')) process.loadEnvFile('.env');
+  try { start(); } catch (error) { console.error(error.message); process.exitCode = 1; }
+}

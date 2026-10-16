@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
 
 // ===============================
@@ -102,6 +102,7 @@ const registerForm = document.querySelector('.register__form');
 if (registerForm) {
   registerForm.addEventListener('submit', async function (e) {
     e.preventDefault();
+    if (registerForm.dataset.busy) return;
 
     const data = {
       name: document.getElementById('register-name').value,
@@ -117,8 +118,11 @@ if (registerForm) {
       return;
     }
 
+    const button = registerForm.querySelector('button[type="submit"]');
+    registerForm.dataset.busy = "true";
+    button.disabled = true;
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      const res = await Api.fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -139,8 +143,10 @@ if (registerForm) {
       registerForm.reset();
 
     } catch (err) {
-      console.error(err);
-      alert('Không kết nối được server');
+      alert(err.message);
+    } finally {
+      delete registerForm.dataset.busy;
+      button.disabled = false;
     }
   });
 }
@@ -155,6 +161,7 @@ const loginForm = document.querySelector('.login__form');
 if (loginForm) {
   loginForm.addEventListener('submit', async function (e) {
     e.preventDefault();
+    if (loginForm.dataset.busy) return;
 
     const data = {
       email: document.getElementById('login-email').value,
@@ -168,8 +175,11 @@ if (loginForm) {
       return;
     }
 
+    const button = loginForm.querySelector('button[type="submit"]');
+    loginForm.dataset.busy = "true";
+    button.disabled = true;
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await Api.fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -184,6 +194,7 @@ if (loginForm) {
         return;
       }
 
+      if (typeof result.token !== "string" || !result.user) throw Api.error(502);
       alert('Đăng nhập thành công ✅');
 
       if (result.token) {
@@ -193,8 +204,10 @@ if (loginForm) {
       }
 
     } catch (err) {
-      console.error(err);
-      alert('Không kết nối được server');
+      alert(err.message);
+    } finally {
+      delete loginForm.dataset.busy;
+      button.disabled = false;
     }
   });
 }

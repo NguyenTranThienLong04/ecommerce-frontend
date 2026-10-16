@@ -1,22 +1,21 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = BASE;
+let usersRequest = 0;
 
 async function loadUsers() {
+  const request = ++usersRequest;
+  try {
 
   const token = localStorage.getItem("adminToken");
 
-  if (!token) {
-    alert("Admin chưa đăng nhập");
-    return;
-  }
-
-  const res = await fetch(`${API_URL}/users`, {
+  const res = await Api.admin(`${API_URL}/users`, {
     headers: {
       "Authorization": "Bearer " + token
     }
   });
 
-  const users = await res.json();
+  const users = Api.list(await res.json());
+  if (request !== usersRequest) return;
 
   const table = document.getElementById("userTable");
 
@@ -24,31 +23,34 @@ async function loadUsers() {
 
   users.forEach(user => {
 
-    table.innerHTML += `
-    
-    <tr>
-      <td>${user.name || ""}</td>
+    const row = document.createElement("tr");
+    row.innerHTML = SafeHTML.html`
+<td>${user.name || ""}</td>
       <td>${user.email}</td>
       <td>${user.phone || ""}</td>
 
       <td>
-        <select onchange="changeRole('${user._id}', this.value)">
-          <option value="USER" ${user.role === "USER" ? "selected" : ""}>USER</option>
-          <option value="ADMIN" ${user.role === "ADMIN" ? "selected" : ""}>ADMIN</option>
+        <select class="user-role">
+          <option value="USER">USER</option>
+          <option value="ADMIN">ADMIN</option>
         </select>
       </td>
 
       <td>
-      <button onclick="editUser('${user._id}','${user.name}','${user.phone || ""}')">Sửa</button>
-        <button onclick="deleteUser('${user._id}')">Xóa</button>
+      <button data-action="editUser">Sửa</button>
+        <button data-action="deleteUser">Xóa</button>
       </td>
-
-    </tr>
-
     `;
+    row.querySelector('[data-action="editUser"]').addEventListener("click", () => editUser(user._id, user.name, user.phone || ""));
+    row.querySelector('[data-action="deleteUser"]').addEventListener("click", () => deleteUser(user._id));
+    const roleSelect = row.querySelector(".user-role");
+    roleSelect.value = user.role;
+    roleSelect.addEventListener("change", () => changeRole(user._id, roleSelect.value, roleSelect, user.role));
+    table.appendChild(row);
 
   });
 
+  } catch (error) { if (request === usersRequest) Api.report(error, loadUsers); }
 }
 
 loadUsers();
@@ -60,15 +62,17 @@ async function deleteUser(id) {
   const token = localStorage.getItem("adminToken");
 
   if (!confirm("Bạn có chắc muốn xóa user?")) return;
+  return Api.action("delete-user:" + id, [...document.querySelectorAll('[data-action="deleteUser"]')], async () => {
 
-  await fetch(`${API_URL}/users/${id}`, {
+  await Api.admin(`${API_URL}/users/${id}`, {
     method: "DELETE",
     headers: {
       "Authorization": "Bearer " + token
     }
   });
 
-  loadUsers();
+  await loadUsers();
+  });
 }
 
 async function editUser(id, name, phone){
@@ -77,7 +81,7 @@ async function editUser(id, name, phone){
   const newPhone = prompt("Số điện thoại:", phone);
   const newPassword = prompt("Mật khẩu mới (bỏ trống nếu không đổi):");
 
-  if(!newName) return;
+  if(!newName || newPhone === null || newPassword === null) return;
 
   const token = localStorage.getItem("adminToken");
 
@@ -90,7 +94,8 @@ async function editUser(id, name, phone){
     bodyData.password = newPassword;
   }
 
-  await fetch(`${API_URL}/users/${id}`,{
+  const submit = async () => {
+  await Api.admin(`${API_URL}/users/${id}`,{
 
     method:"PUT",
 
@@ -103,15 +108,20 @@ async function editUser(id, name, phone){
 
   });
 
-  loadUsers();
+  await loadUsers();
+  };
+  const save = () => Api.action("edit-user:" + id, [...document.querySelectorAll('[data-action="editUser"]')], submit,
+    error => Api.report(error, save));
+  return save();
 
 }
 
-async function changeRole(id, role) {
+async function changeRole(id, role, select, previousRole) {
+  return Api.action("role:" + id, select, async () => {
 
   const token = localStorage.getItem("adminToken");
 
-  await fetch(`${API_URL}/users/${id}`, {
+  await Api.admin(`${API_URL}/users/${id}`, {
 
     method: "PUT",
 
@@ -125,5 +135,9 @@ async function changeRole(id, role) {
     })
 
   });
-
+  await loadUsers();
+  }, error => {
+    if (select) select.value = previousRole;
+    Api.report(error);
+  });
 }

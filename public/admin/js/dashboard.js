@@ -1,9 +1,19 @@
 
+const dashboardCharts = {};
+let revenueRequest = 0;
+function dashboardChart(id, options) {
+  dashboardCharts[id]?.destroy?.();
+  dashboardCharts[id] = new Chart(document.getElementById(id), options);
+}
 async function loadDashboard() {
-  const res = await fetch("https://ecommerce-backend-w960.onrender.com/api/admin/dashboard", {
+  try {
+  const res = await Api.admin(window.AppConfig.apiBase + "/admin/dashboard", {
     headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
   });
   const data = await res.json();
+  if (!data || ["totalProducts", "totalOrders", "totalUsers", "revenue"].some(key => !Number.isFinite(data[key])) ||
+      !data.statusStats || typeof data.statusStats !== "object" || Array.isArray(data.statusStats) ||
+      Object.values(data.statusStats).some(count => !Number.isFinite(count))) throw Api.error(502, {}, "INVALID_RESPONSE");
 
   document.getElementById("totalProducts").innerText = data.totalProducts;
   document.getElementById("totalOrders").innerText = data.totalOrders;
@@ -16,11 +26,12 @@ async function loadDashboard() {
   loadRecentOrders();
   loadTopProducts();
   loadTopUsers();
+  } catch (error) { Api.report(error, loadDashboard); }
 }
 
 // ===== STATUS =====
 function renderStatusChart(statusStats) {
-  new Chart(document.getElementById("statusChart"), {
+  dashboardChart("statusChart", {
     type: "bar",
     data: {
       labels: Object.keys(statusStats),
@@ -34,19 +45,21 @@ function renderStatusChart(statusStats) {
 
 // ===== REVENUE =====
 async function loadRevenueChart() {
+  const request = ++revenueRequest;
+  try {
   const month = document.getElementById("month")?.value;
   const year = document.getElementById("year")?.value;
 
-  const res = await fetch(
-    `https://ecommerce-backend-w960.onrender.com/api/admin/revenue-by-date?month=${month}&year=${year}`
+  const res = await Api.admin(
+    `${window.AppConfig.apiBase}/admin/revenue-by-date?month=${month}&year=${year}`
     , {
     headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}`}
   }
   );
 
-  const data = await res.json();
-
-  new Chart(document.getElementById("revenueChart"), {
+  const data = Api.list(await res.json());
+  if (request !== revenueRequest) return;
+  dashboardChart("revenueChart", {
     type: "line",
     data: {
       labels: data.map(i => i.date),
@@ -56,6 +69,7 @@ async function loadRevenueChart() {
       }]
     }
   });
+  } catch (error) { if (request === revenueRequest) Api.report(error, loadRevenueChart); }
 }
 
 // ===== RECENT =====
@@ -64,7 +78,7 @@ async function loadRecentOrders() {
   try {
     const token = localStorage.getItem("adminToken");
 
-    const res = await fetch("https://ecommerce-backend-w960.onrender.com/api/orders", {
+    const res = await Api.admin(window.AppConfig.apiBase + "/orders", {
       headers: {
        Authorization: `Bearer ${localStorage.getItem("adminToken")}`
       }
@@ -73,7 +87,7 @@ async function loadRecentOrders() {
     const data = await res.json();
 
     // handle trường hợp backend trả {orders: []}
-    const orders = Array.isArray(data) ? data : data.orders;
+    const orders = Api.list(Array.isArray(data) ? data : data?.orders);
 
     if (!orders || orders.length === 0) {
       document.getElementById("recentOrders").innerHTML =
@@ -86,7 +100,7 @@ async function loadRecentOrders() {
   .slice(0, 5);
 
     document.getElementById("recentOrders").innerHTML =
-      recent.map(o => `
+      recent.map(o => SafeHTML.html`
         <tr>
           <td>#${o._id.slice(-6)}</td>
           <td>${(o.total || 0).toLocaleString("vi-VN")} đ</td>
@@ -96,41 +110,42 @@ async function loadRecentOrders() {
       `).join("");
 
   } catch (err) {
-    console.error("Recent orders error:", err);
+    Api.report(err, loadRecentOrders);
   }
 }
 
 // ===== TOP PRODUCTS =====
 async function loadTopProducts() {
-  const res = await fetch("https://ecommerce-backend-w960.onrender.com/api/admin/top-products"
+  try {
+  const res = await Api.admin(window.AppConfig.apiBase + "/admin/top-products"
     , {
     headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}`}
   }
   );
-  const data = await res.json();
-
-  new Chart(document.getElementById("topProductsChart"), {
+  const data = Api.list(await res.json());
+  dashboardChart("topProductsChart", {
     type: "bar",
     data: {
-      labels: data.map(i => i._id),
+      labels: data.map(i => i.nameProduct || i._id),
       datasets: [{
         label: "Sold",
         data: data.map(i => i.totalSold)
       }]
     }
   });
+  } catch (error) { Api.report(error, loadTopProducts); }
 }
 
 // ===== TOP USERS =====
 async function loadTopUsers() {
-  const res = await fetch("https://ecommerce-backend-w960.onrender.com/api/admin/top-users"
+  try {
+  const res = await Api.admin(window.AppConfig.apiBase + "/admin/top-users"
     , {
     headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` }
   }
   );
-  const data = await res.json();
-
-  new Chart(document.getElementById("topUsersChart"), {
+  const data = Api.list(await res.json());
+  dashboardChart("topUsersChart", {
     type: "bar",
     data: {
       labels: data.map(i => i._id),
@@ -140,6 +155,7 @@ async function loadTopUsers() {
       }]
     }
   });
+  } catch (error) { Api.report(error, loadTopUsers); }
 }
 
 loadDashboard();

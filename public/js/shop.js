@@ -1,10 +1,11 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = `${BASE}/products`;
 const ITEMS_PER_PAGE = 40;
 
 let currentPage = 1;
 let totalPages = 1;
 let products = [];
+let productRequest = 0;
 
 /* =========================
    LOAD FILTER OPTIONS
@@ -13,7 +14,7 @@ let products = [];
 async function loadFilters() {
   try {
 
-    const res = await fetch(`${API_URL}/filters`);
+    const res = await Api.fetch(`${API_URL}/filters`);
     const data = await res.json();
 
     const sizeSelect = document.getElementById("filter-size");
@@ -25,19 +26,19 @@ async function loadFilters() {
     categorySelect.innerHTML = `<option value="">Loại</option>`;
 
     data.sizes.forEach(size => {
-      sizeSelect.innerHTML += `<option value="${size}">${size}</option>`;
+      sizeSelect.appendChild(new Option(size, size));
     });
 
     data.colors.forEach(color => {
-      colorSelect.innerHTML += `<option value="${color}">${color}</option>`;
+      colorSelect.appendChild(new Option(color, color));
     });
 
     data.categories.forEach(cat => {
-      categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+      categorySelect.appendChild(new Option(cat, cat));
     });
 
   } catch (error) {
-    console.error("Load filters error:", error);
+    Api.report(error, init);
   }
 }
 
@@ -114,7 +115,7 @@ function updateURL(page) {
 
   const newURL = `/shop?${params.toString()}`;
 
-  window.history.pushState({}, "", newURL);
+  if (window.location.pathname + window.location.search !== newURL) window.history.pushState({}, "", newURL);
 
 }
 
@@ -145,13 +146,15 @@ function applyURLFilters() {
 
   const params = getParamsFromURL();
 
-  document.getElementById("filter-size").value = params.size;
-  document.getElementById("filter-color").value = params.color;
-  document.getElementById("filter-category").value = params.category;
-  document.getElementById("filter-price").value = params.price;
-  document.getElementById("filter-sort").value = params.sort;
+  for (const key of ["size", "color", "category", "price", "sort"]) {
+    const select = document.getElementById("filter-" + key);
+    if (params[key] && ![...select.options].some(option => option.value === params[key])) {
+      select.appendChild(new Option(params[key], params[key]));
+    }
+    select.value = params[key];
+  }
 
-  currentPage = params.page;
+  currentPage = Math.max(1, params.page);
 
 }
 
@@ -159,7 +162,11 @@ function applyURLFilters() {
    FETCH PRODUCTS
 ========================= */
 
-async function fetchProducts(page = 1) {
+async function fetchProducts(page = 1, navigate = true) {
+  const request = ++productRequest;
+  currentPage = Math.max(1, Number(page) || 1);
+  document.getElementById("products-list").textContent = "Đang tải...";
+  document.getElementById("pagination").replaceChildren();
 
   try {
 
@@ -175,12 +182,12 @@ async function fetchProducts(page = 1) {
     if (filters.price) params.append("price", filters.price);
     if (filters.sort) params.append("sort", filters.sort);
 
-    updateURL(page);
+    if (navigate) updateURL(currentPage);
 
-    const res = await fetch(`${API_URL}?${params.toString()}`);
+    const res = await Api.fetch(`${API_URL}?${params.toString()}`);
     const data = await res.json();
-
-    products = data.products;
+    if (request !== productRequest) return;
+    products = Api.list(data.products);
     currentPage = data.page;
     totalPages = data.totalPages;
 
@@ -188,7 +195,9 @@ async function fetchProducts(page = 1) {
     renderPagination();
 
   } catch (error) {
-    console.error("Fetch products error:", error);
+    if (request !== productRequest) return;
+    document.getElementById("products-list").textContent = "Không tải được sản phẩm.";
+    Api.report(error, () => fetchProducts(currentPage, false));
   }
 
 }
@@ -219,17 +228,16 @@ function renderProducts() {
     const badges = buildBadges(product);
 
     const badgeHTML = badges
-      .map(tag => `<span class="product__badge">${tag}</span>`)
-      .join("");
+      .map(tag => SafeHTML.html`<span class="product__badge">${tag}</span>`);
 
-    productList.innerHTML += `
+    productList.innerHTML += SafeHTML.html`
     
     <div class="product__item"
-    onclick="goToDetail('${product.slug}')">
+    data-slug="${product.slug}">
 
       <div class="product__image">
 
-        <img src="${firstImage}" alt="${product.nameProduct}">
+        <img src="${SafeHTML.url(firstImage)}" alt="${product.nameProduct}">
 
         <div class="product__badges">
           ${badgeHTML}
@@ -344,8 +352,13 @@ document
    PRODUCT DETAIL
 ========================= */
 
+document.getElementById("products-list").addEventListener("click", event => {
+  const card = event.target.closest(".product__item");
+  if (card) goToDetail(card.dataset.slug);
+});
+
 function goToDetail(slug) {
-  window.location.href = `/${slug}`;
+  window.location.href = SafeHTML.productPath(slug);
 }
 
 /* =========================
@@ -354,16 +367,15 @@ function goToDetail(slug) {
 
 async function init() {
 
-  setupEvents();
-
   await loadFilters();
 
   applyURLFilters();
 
-  fetchProducts(currentPage);
+  await fetchProducts(currentPage, false);
 
 }
 
+setupEvents();
 init();
 
 /* =========================
@@ -374,7 +386,7 @@ window.addEventListener("popstate", () => {
 
   applyURLFilters();
 
-  fetchProducts(currentPage);
+  fetchProducts(currentPage, false);
 
 });
 

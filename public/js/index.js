@@ -1,11 +1,12 @@
 
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = `${BASE}/products`;
 const BANNER_API = `${BASE}/banners`;
 const ITEMS_PER_PAGE = 40;
 
 let allProducts = [];
 let currentPage = 1;
+let productRequest = 0;
 
 // ==============================
 // Lấy page từ URL
@@ -20,28 +21,33 @@ function getPageFromURL() {
 // ==============================
 function updateURL(page) {
   const newURL = `?page=${page}`;
-  window.history.pushState({ page }, "", newURL);
+  if (location.search !== newURL) window.history.pushState({ page }, "", newURL);
 }
 
 // ==============================
 // Fetch sản phẩm
 // ==============================
 async function fetchProducts() {
+  const request = ++productRequest;
+  document.getElementById("products-list").textContent = "Đang tải...";
+  document.getElementById("pagination").replaceChildren();
   try {
 
     currentPage = getPageFromURL();
 
-    const res = await fetch(`${API_URL}?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+    const res = await Api.fetch(`${API_URL}?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
     const data = await res.json();
-
-    allProducts = data.products;
+    if (request !== productRequest) return;
+    allProducts = Api.list(data.products);
 
     renderProducts();
 
     renderPagination(data.totalPages);
 
   } catch (error) {
-    console.error("Lỗi fetch:", error);
+    if (request !== productRequest) return;
+    document.getElementById("products-list").textContent = "Không tải được sản phẩm.";
+    Api.report(error, fetchProducts);
   }
 }
 // ==============================
@@ -95,15 +101,14 @@ function renderProducts() {
     badges = badges.slice(0,3);
 
     const badgeHTML = badges
-.map(tag => `<span class="product__badge">${tag}</span>`)
-.join("");
+.map(tag => SafeHTML.html`<span class="product__badge">${tag}</span>`);
 
-const html = `
-<div class="product__item" onclick="goToDetail('${product.slug}')">
+const html = SafeHTML.html`
+<div class="product__item" data-slug="${product.slug}">
 
   <div class="product__image">
 
-    <img src="${firstImage}" alt="${product.nameProduct}">
+    <img src="${SafeHTML.url(firstImage)}" alt="${product.nameProduct}">
 
     <div class="product__badges">
       ${badgeHTML}
@@ -246,8 +251,8 @@ function initSwiper() {
 
 async function loadBanners(){
 
-  const res = await fetch(BANNER_API);
-  const banners = await res.json();
+  const res = await Api.fetch(BANNER_API);
+  const banners = Api.list(await res.json());
 
   const bannerList = document.getElementById("banner-list");
 
@@ -255,21 +260,26 @@ async function loadBanners(){
 
   banners.forEach(banner => {
 
-    bannerList.innerHTML += `
+    bannerList.innerHTML += SafeHTML.html`
       <div class="swiper-slide">
-        <a href="${banner.link || '#'}">
-          <img src="${banner.image}">
+        <a href="${SafeHTML.url(banner.link)}">
+          <img src="${SafeHTML.url(banner.image)}">
         </a>
       </div>
     `;
 
   });
 
-  initSwiper();
+  if (banners.length && typeof Swiper === "function") initSwiper();
 
 }
+document.getElementById("products-list").addEventListener("click", event => {
+  const card = event.target.closest(".product__item");
+  if (card) goToDetail(card.dataset.slug);
+});
+
 function goToDetail(slug) {
-  window.location.href = `/${slug}`;
+  window.location.href = SafeHTML.productPath(slug);
 }
 
 // ==============================
@@ -277,12 +287,11 @@ function goToDetail(slug) {
 // ==============================
 window.addEventListener("popstate", (event) => {
   currentPage = getPageFromURL();
-  renderProducts();
-  renderPagination();
+  fetchProducts();
 });
 
 // ==============================
 // Khởi chạy
 // ==============================
-loadBanners();
+loadBanners().catch(error => Api.report(error, loadBanners));
 fetchProducts();

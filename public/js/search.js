@@ -1,4 +1,4 @@
-const BASE = "https://ecommerce-backend-w960.onrender.com/api";
+const BASE = window.AppConfig.apiBase;
 const API_URL = `${BASE}/products`;
 
 
@@ -9,11 +9,23 @@ let totalPages = 1;
 let products = [];
 
 
+let searchQuery = "";
+let productRequest = 0;
+
+
+async function fetchProducts(page = 1, navigate = true){
+const request = ++productRequest;
 const params = new URLSearchParams(window.location.search);
-const searchQuery = params.get("q") || "";
-
-
-async function fetchProducts(page = 1){
+searchQuery = params.get("q") || "";
+currentPage = Math.max(1, Number(page) || 1);
+if (navigate) {
+  params.set("page", currentPage);
+  const next = "/search?" + params.toString();
+  if (location.pathname + location.search !== next) history.pushState({}, "", next);
+}
+document.getElementById("products-list").textContent = "Đang tải...";
+document.getElementById("pagination").replaceChildren();
+document.getElementById("search-count").textContent = "";
 
 try{
 
@@ -26,11 +38,11 @@ if(searchQuery){
 urlParams.append("search",searchQuery);
 }
 
-const res = await fetch(`${API_URL}?${urlParams.toString()}`);
+const res = await Api.fetch(`${API_URL}?${urlParams.toString()}`);
 
 const data = await res.json();
-
-products = data.products;
+if (request !== productRequest) return;
+products = Api.list(data.products);
 
 currentPage = data.page;
 
@@ -43,7 +55,9 @@ renderPagination();
 updateTitle(data.total);
 
 }catch(error){
-console.error(error);
+if (request !== productRequest) return;
+document.getElementById("products-list").textContent = "Không tải được kết quả tìm kiếm.";
+Api.report(error, () => fetchProducts(currentPage, false));
 }
 
 }
@@ -91,11 +105,11 @@ function updateTitle(total){
 
 const count = document.getElementById("search-count");
 
-if(!searchQuery) return;
+if(!searchQuery) { count.textContent = ""; return; }
 
 if(total === 0){
 
-count.innerHTML = `
+count.innerHTML = SafeHTML.html`
 Không tìm thấy nội dung với từ khóa "<b>${searchQuery}</b>".
 <br>
 Vui lòng tìm kiếm với từ khóa khác.
@@ -137,17 +151,16 @@ const price = product.minPrice
 const badges = buildBadges(product);
 
 const badgeHTML = badges
-.map(tag => `<span class="product__badge">${tag}</span>`)
-.join("");
+.map(tag => SafeHTML.html`<span class="product__badge">${tag}</span>`);
 
-productList.innerHTML += `
+productList.innerHTML += SafeHTML.html`
 
 <div class="product__item"
-onclick="goToDetail('${product.slug}')">
+data-slug="${product.slug}">
 
 <div class="product__image">
 
-<img src="${img}">
+<img src="${SafeHTML.url(img)}">
 
 <div class="product__badges">
 ${badgeHTML}
@@ -208,11 +221,20 @@ pagination.appendChild(btn);
 
 
 
+document.getElementById("products-list").addEventListener("click", event => {
+  const card = event.target.closest(".product__item");
+  if (card) goToDetail(card.dataset.slug);
+});
+
 function goToDetail(slug){
 
-window.location.href=`/${slug}`;
+window.location.href=SafeHTML.productPath(slug);
 
 }
 
 
-fetchProducts();
+function restoreSearch() {
+  fetchProducts(new URLSearchParams(location.search).get("page") || 1, false);
+}
+window.addEventListener("popstate", restoreSearch);
+restoreSearch();

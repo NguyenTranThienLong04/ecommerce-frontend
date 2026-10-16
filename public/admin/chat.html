@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script src="/runtime-config.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/chat-sync.js"></script>
+<link rel="stylesheet" href="/css/reliability.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Chat</title>
@@ -43,7 +47,7 @@
 
 </div>
 
-<script src="https://ecommerce-backend-w960.onrender.com/socket.io/socket.io.js"></script>
+<script src="/vendor/socket.io.min.js"></script>
 <script src="/admin/js/admin-auth.js"></script>
 <script src="/admin/js/admin-chat.js"></script>
 
@@ -55,11 +59,14 @@ fetch('/admin/slidebar.html')
 
     document.getElementById('slidebar-container').innerHTML = html;
 
-    const adminUser = JSON.parse(localStorage.getItem("adminUser"));
+    const adminUser = Api.stored("adminUser");
     const adminInfoElem = document.getElementById("adminInfo");
     
     if (adminUser && adminInfoElem) {
-      adminInfoElem.innerHTML = "Xin chào: <b>" + adminUser.email + "</b>";
+      adminInfoElem.textContent = "Xin chào: ";
+      const email = document.createElement("b");
+      email.textContent = adminUser.email;
+      adminInfoElem.appendChild(email);
     }
 
   });

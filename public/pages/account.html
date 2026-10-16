@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="/runtime-config.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/payment-create.js"></script>
+<script src="/js/chat-sync.js"></script>
+<link rel="stylesheet" href="/css/reliability.css">
+<script src="/vendor/dompurify.js"></script>
+<script src="/js/safe-html.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -101,18 +108,18 @@
 
 <!-- ADDRESS MODAL -->
 
-<div id="address-modal" class="modal">
+<div id="address-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
 
 <div class="modal-content">
 
 <h3 id="modal-title">Thêm địa chỉ</h3>
 
-<input id="receiverName" placeholder="Tên người nhận">
-<input id="phone" placeholder="Số điện thoại">
-<input id="addressLine" placeholder="Địa chỉ">
-<input id="ward" placeholder="Phường/Xã">
-<input id="district" placeholder="Quận/Huyện">
-<input id="city" placeholder="Tỉnh/Thành">
+<label for="receiverName">Tên người nhận</label><input id="receiverName" placeholder="Tên người nhận">
+<label for="phone">Số điện thoại</label><input id="phone" placeholder="Số điện thoại">
+<label for="addressLine">Địa chỉ</label><input id="addressLine" placeholder="Địa chỉ">
+<label for="ward">Phường/Xã</label><input id="ward" placeholder="Phường/Xã">
+<label for="district">Quận/Huyện</label><input id="district" placeholder="Quận/Huyện">
+<label for="city">Tỉnh/Thành</label><input id="city" placeholder="Tỉnh/Thành">
 
 <div class="modal-actions">
 <button id="save-address" class="btn">Lưu</button>
@@ -170,7 +177,7 @@ document.getElementById('footer-container').innerHTML = html;
 <script src="../js/account.js"></script>
 <script src="../js/account-address.js"></script>
 <script src="../js/account-orders.js"></script>
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="/vendor/socket.io.min.js"></script>
 <script src="/js/chat-widget.js"></script>
 </body>
 </html>
