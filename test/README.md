@@ -1,6 +1,14 @@
 Current commands are in the [main README](../README.md). Batch sections below are
 historical checkpoints; Batch 7 supersedes the previous browser/chat limitations.
 
+Notification checkpoint (2026-10-17): **129 frontend tests and 20 Chromium E2E
+tests PASS**, zero failures/skips. The 13 new DOM tests cover merge/count races,
+read/read-all, pagination, session isolation (including late widget loading),
+safe text, keyboard and recovery. Three browser tests use real Socket.IO/MongoDB
+to verify checkout notifications, order/chat deep links, offline reconnect and
+HTTP/live overlap. Screenshots: `.cache/notification-review`. All 116 previous
+frontend tests and 17 previous E2E tests remain enabled and pass.
+
 UI refactor checkpoint: **116 frontend regressions and 17 Chromium E2E tests**.
 The seven UI tests in `e2e/ui.spec.js` cover 375/768/1024/1440px, short landscape,
 keyboard focus, form labels, reduced motion, contrast, payment-card states,

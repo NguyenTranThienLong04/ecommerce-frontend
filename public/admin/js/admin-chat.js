@@ -1,5 +1,5 @@
 const chatApi = window.AppConfig.apiBase + "/chat";
-const socket = io(window.AppConfig.socketUrl, { auth: { token: localStorage.getItem("adminToken") } });
+const socket = ChatSync.socket("admin");
 const userList = document.getElementById("userList");
 const chatMessages = document.getElementById("chatMessages");
 const messageInput = document.getElementById("messageInput");
@@ -20,6 +20,7 @@ messageInput.setAttribute("aria-label", "Tin nhắn");
 function state(message = "", recover = false) { status.textContent = message; retry.hidden = !recover; }
 
 async function loadUsers() {
+  if (!ChatSync.isCurrent("admin")) return;
   const request = ++usersVersion;
   try {
     const res = await Api.admin(chatApi + "/admin/conversations");
@@ -45,6 +46,11 @@ async function loadUsers() {
       empty.textContent = "Chưa có hội thoại.";
       userList.appendChild(empty);
     }
+    const target = new URLSearchParams(location.search).get("conversation");
+    if (target && !currentUser) {
+      const match = users.find(item => item.idConversation?._id === target);
+      if (match) await selectUser({ userId: match.idUser._id, name: match.idUser.name || "Khách", conversationId: target });
+    }
   } catch (error) {
     if (request !== usersVersion) return;
     if (error.status === 401) userList.replaceChildren();
@@ -58,7 +64,7 @@ function receive(incoming) {
   ordered.forEach(addMessage);
 }
 async function loadHistory(user = currentUser) {
-  if (!user) return;
+  if (!user || !ChatSync.isCurrent("admin")) return;
   const request = ++historyVersion, selected = selection;
   const res = await Api.admin(chatApi + "/messages/" + encodeURIComponent(user.conversationId));
   const history = Api.list(await res.json());
@@ -141,6 +147,7 @@ function sendMessage() {
   });
 }
 async function recoverConnection() {
+  if (!ChatSync.isCurrent("admin")) return;
   try {
     const res = await Api.admin(window.AppConfig.apiBase + "/auth/me");
     if ((await res.json()).role !== "ADMIN") { Api.expire("admin", localStorage.getItem("adminToken")); return; }
@@ -165,7 +172,7 @@ socket.on("disconnect", reason => {
 socket.on("connect_error", () => {
   joined = null;
   state("Không kết nối được chat.", true);
-  Api.admin(window.AppConfig.apiBase + "/auth/me")
+  if (ChatSync.isCurrent("admin")) Api.admin(window.AppConfig.apiBase + "/auth/me")
     .catch(error => state(error.message, error.status !== 401));
 });
 socket.on("newMessage", message => receive([message]));

@@ -71,6 +71,7 @@
     chatBox.style.display = "none";
     chatButton.focus();
   };
+  if (new URLSearchParams(location.search).get("chat") === "1") chatButton.click();
 
   const status = document.getElementById("chat-status");
   const retry = document.getElementById("chat-retry");
@@ -86,7 +87,7 @@
     ordered.forEach(renderMessage);
   }
   async function loadMessages() {
-    if (!conversationId) return;
+    if (!conversationId || !ChatSync.isCurrent("user")) return;
     const request = ++historyVersion;
     const id = conversationId;
     const res = await Api.user(`${API_URL}/messages/${encodeURIComponent(id)}`);
@@ -95,7 +96,7 @@
     receive(history); // Merge live events received while the snapshot was in flight.
   }
   async function resync() {
-    if (!conversationId || !socket?.connected) return;
+    if (!conversationId || !socket?.connected || !ChatSync.isCurrent("user")) return;
     const sync = ++syncVersion;
     joined = false;
     try {
@@ -107,7 +108,7 @@
     } catch (error) { if (sync === syncVersion) state(error.message, error.status !== 401); }
   }
   async function initChat() {
-    if (initialized || !localStorage.getItem("token")) return;
+    if (initialized || !ChatSync.isCurrent("user")) return;
     initialized = true;
     try {
       const res = await Api.user(`${API_URL}/conversation`, { method: "POST" });
@@ -120,6 +121,7 @@
     finally { initialized = false; }
   }
   async function recoverConnection() {
+    if (!ChatSync.isCurrent("user")) return;
     try {
       await Api.user(`${BASE}/auth/me`);
       if (!socket) connectSocket();
@@ -131,8 +133,8 @@
     } catch (error) { state(error.message, error.status !== 401); }
   }
   function connectSocket() {
-    if (!localStorage.getItem("token") || typeof io === "undefined") return;
-    socket = io(window.AppConfig.socketUrl, { auth: { token: localStorage.getItem("token") } });
+    if (!ChatSync.isCurrent("user") || typeof io === "undefined") return;
+    socket = ChatSync.socket("user");
     socket.io?.on("reconnect_attempt", () => { socket.auth = { token: localStorage.getItem("token") }; });
     socket.on("connect", () => { if (conversationId) resync(); else initChat(); });
     socket.on("disconnect", reason => {
@@ -145,9 +147,10 @@
     socket.on("connect_error", () => {
       joined = false;
       state("Không kết nối được chat.", true);
-      Api.user(`${BASE}/auth/me`).catch(error => state(error.message, error.status !== 401));
+      if (ChatSync.isCurrent("user")) Api.user(`${BASE}/auth/me`).catch(error => state(error.message, error.status !== 401));
     });
     socket.on("newMessage", message => receive([message]));
+    if (socket.connected) { if (conversationId) resync(); else initChat(); }
   }
   retry.onclick = () => Api.action("chat-recover", retry, recoverConnection);
   chatSend.onclick = sendMessage;

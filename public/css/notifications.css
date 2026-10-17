@@ -1,0 +1,21 @@
+.notifications { position: relative; flex-shrink: 0; }
+.notification-bell { position: relative; width: 44px; height: 44px; padding: 10px; border-color: transparent; background: transparent; }
+.notification-badge { position: absolute; top: 0; right: -2px; min-width: 19px; padding: 1px 4px; border-radius: var(--radius-lg); background: var(--color-danger); color: var(--color-secondary); font-size: var(--text-xs); line-height: 1.4; }
+.notification-panel { position: absolute; top: calc(100% + 12px); right: 0; z-index: 1100; width: min(380px, calc(100vw - 32px)); max-height: min(560px, 75dvh); overflow-y: auto; background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-overlay); }
+.notification-panel[hidden], .notification-badge[hidden] { display: none; }
+.notification-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--color-border-light); }
+.notification-read-all { border: 0; padding: 8px; font-size: var(--text-xs); }
+.notification-status { margin: 0; padding: var(--space-3) var(--space-4); font-size: var(--text-sm); color: var(--color-text-muted); }
+.notification-status:empty { display: none; }
+.notification-list { list-style: none; padding: 0; margin: 0; }
+.notification-list .notification-item { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-1); padding: var(--space-4); border-bottom: 1px solid var(--color-border-light); font-size: var(--text-sm); text-transform: none; letter-spacing: normal; overflow-wrap: anywhere; line-height: 1.5; }
+.notification-item small { color: var(--color-text-muted); font-size: var(--text-xs); }
+.notification-item.notification-unread { background: var(--color-bg-light); border-left: 3px solid var(--color-accent); }
+.notification-item:hover { background: var(--color-border-light); }
+.notification-item:focus-visible { outline-offset: -3px; }
+.notification-more, .notification-retry { margin: var(--space-3) var(--space-4); }
+.admin-topbar .notifications { margin-left: auto; order: 1; }
+.checkout-brand { display: flex; justify-content: space-between; align-items: center; }
+@media (max-width: 600px) {
+  .notification-panel { position: fixed; top: calc(var(--header-height) + 8px); right: 16px; }
+}

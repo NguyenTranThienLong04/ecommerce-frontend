@@ -3,6 +3,7 @@
 <head>
 <script src="/runtime-config.js"></script>
 <script src="/js/api.js"></script>
+<script src="/js/chat-sync.js"></script>
 <link rel="stylesheet" href="/css/reliability.css">
 <script src="/vendor/dompurify.js"></script>
 <script src="/js/safe-html.js"></script>
@@ -18,6 +19,7 @@
 
 
 <script src="/js/ui.js" defer></script>
+<link rel="stylesheet" href="/css/notifications.css">
 </head>
 <body>
 <a class="skip-link" href="#main-content">Đến nội dung chính</a>
@@ -71,5 +73,7 @@ fetch('/admin/slidebar.html')
   });
 </script>
 
+<script src="/vendor/socket.io.min.js"></script>
+<script src="/js/notifications.js"></script>
 </body>
 </html>

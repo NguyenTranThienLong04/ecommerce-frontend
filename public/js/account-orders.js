@@ -113,6 +113,12 @@ const API_URL = BASE;
         </tr>
       `;
     });
+    const targetOrder = new URLSearchParams(location.search).get("order");
+    if (targetOrder) {
+      document.querySelector('[data-tab="orders"]')?.click();
+      const detail = document.getElementById("detail-" + targetOrder);
+      if (detail) { detail.style.display = "table-row"; detail.scrollIntoView?.({ block: "center" }); }
+    }
     } catch (error) {
       if (request !== orderRequest) return;
       if (error.status === 401) list.replaceChildren();

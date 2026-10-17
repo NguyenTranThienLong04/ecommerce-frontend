@@ -5,6 +5,13 @@ served by Express 5 on Node **24.13.1**. The companion
 [backend README](https://github.com/long123123213/ecommerce-backend#readme) explains
 the architecture, transaction/payment guarantees, Docker setup and deployment.
 
+Customer headers and admin topbars include a notification bell with unread count,
+recent items, pagination and read/read-all controls. Chat and notifications reuse
+one Socket.IO connection per login scope. Reconnect authenticates, rejoins and
+fetches HTTP snapshots; duplicate event/snapshot rows merge by ID. Notification
+links open the existing order, payment or chat UI. Use the matching backend's
+`/api/notifications` endpoints; no additional dependency or configuration is needed.
+
 ## Local setup
 
 Keep this checkout named `ClothingShopProjectFE` beside `ClothingShopProject`.
